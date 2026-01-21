@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">Pick a Date</title>
+    <title>Let's play Golf - Date Picker</title>
     
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛳</text></svg>">
     
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <!-- Open Graph / Social Media Preview -->
+    <meta property="og:title" content="Let's play Golf! ⛳">
+    <meta property="og:description" content="Pick your available dates for our golf tournament">
+    <meta property="og:image" content="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 630'><rect width='1200' height='630' fill='%23667eea'/><text x='50%' y='50%' text-anchor='middle' font-size='200' fill='white'>⛳</text><text x='50%' y='75%' text-anchor='middle' font-size='60' fill='white'>Let's play Golf!</text></svg>">
+    <meta property="og:type" content="website">
     
     <style>
         * {
@@ -62,22 +64,6 @@
             text-align: center;
             margin-bottom: 32px;
             font-size: 16px;
-            white-space: pre-wrap;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 60px;
-            color: #718096;
-        }
-
-        .error {
-            text-align: center;
-            padding: 40px;
-            color: #ef4444;
-            background: #fee2e2;
-            border-radius: 12px;
-            margin: 20px 0;
         }
 
         .summary-section {
@@ -134,16 +120,6 @@
         .no-dates {
             color: #65a30d;
             font-style: italic;
-        }
-
-        .closed-message {
-            background: #fef3c7;
-            border: 2px solid #fbbf24;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            color: #78350f;
-            font-weight: 600;
         }
 
         .dates-section {
@@ -298,6 +274,7 @@
             transform: translateY(0);
         }
 
+        /* Modal styles */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -339,6 +316,17 @@
             to {
                 opacity: 1;
                 transform: translateY(0);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
             }
         }
 
@@ -439,42 +427,21 @@
 </head>
 <body>
     <div class="container">
-        <div id="loadingState" class="loading">
-            <div style="font-size: 48px; margin-bottom: 20px;">⏳</div>
-            <p>Loading event...</p>
-        </div>
+        <h1>⛳ Let's play Golf</h1>
+        <p class="subtitle">Pick your available dates</p>
 
-        <div id="errorState" style="display: none;">
-            <div class="error">
-                <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
-                <h2 style="margin-bottom: 10px;">Event Not Found</h2>
-                <p id="errorMessage">This event doesn't exist or has been deleted.</p>
+        <div class="summary-section">
+            <div class="summary-title">Everyone's Available</div>
+            <div class="best-dates" id="bestDates">
+                <div class="no-dates">Loading...</div>
             </div>
         </div>
 
-        <div id="eventContent" style="display: none;">
-            <h1 id="eventTitle">Event Title</h1>
-            <p class="subtitle" id="eventInfo"></p>
-
-            <div id="closedMessage" class="closed-message" style="display: none;">
-                🚫 This event is closed. Maximum responses reached.
-            </div>
-
-            <div id="activeEvent">
-                <div class="summary-section">
-                    <div class="summary-title">Everyone's Available</div>
-                    <div class="best-dates" id="bestDates">
-                        <div class="no-dates">Loading...</div>
-                    </div>
-                </div>
-
-                <div class="dates-section">
-                    <div id="datesContainer"></div>
-                </div>
-
-                <button onclick="saveAvailability()">Save My Availability</button>
-            </div>
+        <div class="dates-section">
+            <div id="datesContainer"></div>
         </div>
+
+        <button onclick="saveAvailability()">Save My Availability</button>
     </div>
 
     <!-- Name Input Modal -->
@@ -490,6 +457,10 @@
             </div>
         </div>
     </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
     <script>
         // Firebase Configuration
@@ -507,142 +478,59 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+        const responsesRef = database.ref('responses');
 
-        // Get event ID from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const eventId = urlParams.get('event');
-        const isAdmin = urlParams.has('admin');
-
-        if (!eventId) {
-            showError('No event ID provided in URL');
+        // Generate weekday dates starting from the most recent Monday
+        const dates = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        let startDate = new Date(today);
+        const currentDay = startDate.getDay();
+        const daysToMonday = currentDay === 0 ? -6 : -(currentDay - 1);
+        startDate.setDate(startDate.getDate() + daysToMonday);
+        
+        let daysAdded = 0;
+        let dayOffset = 0;
+        
+        while (daysAdded < 30) {
+            const date = new Date(startDate);
+            date.setDate(startDate.getDate() + dayOffset);
+            const dayOfWeek = date.getDay();
+            
+            if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                dates.push(date);
+                daysAdded++;
+            }
+            dayOffset++;
         }
 
-        let eventData = null;
-        let dates = [];
+        // Initialize user availability (all neutral/null by default)
         let userAvailability = {};
+        dates.forEach(date => {
+            userAvailability[date.toISOString().split('T')[0]] = null;
+        });
+
+        // Load saved data from Firebase (real-time updates)
         let allResponses = [];
-
-        // Load event data
-        async function loadEvent() {
-            try {
-                const snapshot = await database.ref('events/' + eventId).once('value');
-                eventData = snapshot.val();
-
-                if (!eventData) {
-                    showError('Event not found');
-                    return;
-                }
-
-                // Set page title and background
-                document.getElementById('pageTitle').textContent = eventData.title;
-                document.getElementById('eventTitle').textContent = eventData.title;
-                
-                if (eventData.info) {
-                    document.getElementById('eventInfo').textContent = eventData.info;
-                } else {
-                    document.getElementById('eventInfo').style.display = 'none';
-                }
-
-                // Update background color
-                updateBackgroundColor(eventData.color);
-
-                // Generate dates based on event settings
-                generateDates();
-
-                // Initialize user availability
-                dates.forEach(date => {
-                    userAvailability[date.toISOString().split('T')[0]] = null;
-                });
-
-                // Load responses
-                listenToResponses();
-
-                // Show event content
-                document.getElementById('loadingState').style.display = 'none';
-                document.getElementById('eventContent').style.display = 'block';
-
-            } catch (error) {
-                console.error('Error loading event:', error);
-                showError('Failed to load event');
-            }
-        }
-
-        function updateBackgroundColor(color) {
-            const colors = {
-                '#667eea': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                '#10b981': 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                '#ef4444': 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-                '#f59e0b': 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                '#8b5cf6': 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-                '#ec4899': 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
-                '#06b6d4': 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
-                '#84cc16': 'linear-gradient(135deg, #84cc16 0%, #65a30d 100%)'
-            };
+        
+        responsesRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            allResponses = data ? Object.values(data) : [];
             
-            if (colors[color]) {
-                document.body.style.background = colors[color];
-            } else {
-                document.body.style.background = `linear-gradient(135deg, ${color} 0%, ${adjustBrightness(color, -20)} 100%)`;
+            // Load user's previous response if exists
+            const savedName = localStorage.getItem('golfUserName') || '';
+            if (savedName) {
+                const previousResponse = allResponses.find(r => r.name === savedName);
+                if (previousResponse) {
+                    userAvailability = { ...previousResponse.availability };
+                }
             }
-        }
-
-        function adjustBrightness(color, percent) {
-            const num = parseInt(color.replace("#",""), 16);
-            const amt = Math.round(2.55 * percent);
-            const R = (num >> 16) + amt;
-            const G = (num >> 8 & 0x00FF) + amt;
-            const B = (num & 0x0000FF) + amt;
-            return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 +
-                (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255))
-                .toString(16).slice(1);
-        }
-
-        function generateDates() {
-            const startDate = new Date(eventData.dateBegin + 'T00:00:00');
-            const endDate = new Date(eventData.dateEnd + 'T00:00:00');
             
-            const current = new Date(startDate);
-            while (current <= endDate) {
-                const dayOfWeek = current.getDay();
-                const dateStr = current.toISOString().split('T')[0];
-                
-                // Check if this day/date is excluded
-                const isWeekdayExcluded = eventData.excludedWeekdays && eventData.excludedWeekdays.includes(dayOfWeek);
-                const isDateExcluded = eventData.excludedDates && eventData.excludedDates.includes(dateStr);
-                
-                if (!isWeekdayExcluded && !isDateExcluded) {
-                    dates.push(new Date(current));
-                }
-                
-                current.setDate(current.getDate() + 1);
-            }
-        }
+            renderDates();
+        });
 
-        function listenToResponses() {
-            database.ref('events/' + eventId + '/responses').on('value', (snapshot) => {
-                const data = snapshot.val();
-                allResponses = data ? Object.values(data) : [];
-                
-                // Check if event is closed
-                if (eventData.maxResponses && allResponses.length >= eventData.maxResponses) {
-                    document.getElementById('closedMessage').style.display = 'block';
-                    document.getElementById('activeEvent').style.display = 'none';
-                    return;
-                }
-                
-                // Load user's previous response
-                const savedName = localStorage.getItem('golfUserName_' + eventId) || '';
-                if (savedName) {
-                    const previousResponse = allResponses.find(r => r.name === savedName);
-                    if (previousResponse) {
-                        userAvailability = { ...previousResponse.availability };
-                    }
-                }
-                
-                renderDates();
-            });
-        }
-
+        // Render dates
         function renderDates() {
             const container = document.getElementById('datesContainer');
             container.innerHTML = '';
@@ -751,7 +639,7 @@
 
         function updateSummary() {
             const bestDatesEl = document.getElementById('bestDates');
-            const currentUserName = localStorage.getItem('golfUserName_' + eventId) || '';
+            const currentUserName = localStorage.getItem('golfUserName') || '';
             
             const dateAvailability = {};
             dates.forEach(date => {
@@ -759,17 +647,21 @@
                 dateAvailability[dateKey] = {
                     date: date,
                     availableCount: 0,
-                    unavailableCount: 0
+                    unavailableCount: 0,
+                    people: []
                 };
             });
 
             allResponses.forEach(response => {
-                if (response.name === currentUserName) return;
+                if (response.name === currentUserName) {
+                    return;
+                }
                 
                 Object.keys(response.availability).forEach(dateKey => {
                     if (dateAvailability[dateKey]) {
                         if (response.availability[dateKey] === true) {
                             dateAvailability[dateKey].availableCount++;
+                            dateAvailability[dateKey].people.push(response.name);
                         } else if (response.availability[dateKey] === false) {
                             dateAvailability[dateKey].unavailableCount++;
                         }
@@ -782,6 +674,9 @@
                     if (dateAvailability[dateKey]) {
                         if (userAvailability[dateKey] === true) {
                             dateAvailability[dateKey].availableCount++;
+                            if (!dateAvailability[dateKey].people.includes(currentUserName)) {
+                                dateAvailability[dateKey].people.push(currentUserName);
+                            }
                         } else if (userAvailability[dateKey] === false) {
                             dateAvailability[dateKey].unavailableCount++;
                         }
@@ -812,7 +707,7 @@
         }
 
         async function saveAvailability() {
-            const savedName = localStorage.getItem('golfUserName_' + eventId) || '';
+            const savedName = localStorage.getItem('golfUserName') || '';
             
             if (savedName) {
                 const response = {
@@ -822,14 +717,9 @@
                 };
 
                 try {
+                    // Use name as key (sanitized for Firebase)
                     const sanitizedName = savedName.replace(/[.#$[\]]/g, '_');
-                    await database.ref('events/' + eventId + '/responses/' + sanitizedName).set(response);
-                    
-                    // Update response count
-                    const snapshot = await database.ref('events/' + eventId + '/responses').once('value');
-                    const count = snapshot.val() ? Object.keys(snapshot.val()).length : 0;
-                    await database.ref('events/' + eventId + '/responseCount').set(count);
-                    
+                    await responsesRef.child(sanitizedName).set(response);
                     showSuccessMessage(`Saved! Your availability has been updated.`);
                 } catch (error) {
                     console.error('Error saving:', error);
@@ -840,8 +730,11 @@
             
             const modal = document.getElementById('nameModal');
             const input = document.getElementById('modalNameInput');
+            const subtext = document.getElementById('modalSubtext');
             
             input.value = '';
+            subtext.textContent = 'Please enter your name to save your availability';
+            
             modal.classList.add('active');
             input.focus();
             
@@ -872,7 +765,8 @@
             document.body.appendChild(banner);
             
             setTimeout(() => {
-                banner.remove();
+                banner.style.animation = 'slideUp 0.3s ease-out';
+                setTimeout(() => banner.remove(), 300);
             }, 2000);
         }
 
@@ -884,11 +778,11 @@
             const userName = document.getElementById('modalNameInput').value.trim();
             
             if (!userName) {
-                alert('Name is required!');
+                alert('Name is required to save your availability!');
                 return;
             }
             
-            localStorage.setItem('golfUserName_' + eventId, userName);
+            localStorage.setItem('golfUserName', userName);
             closeNameModal();
 
             const response = {
@@ -899,28 +793,13 @@
 
             try {
                 const sanitizedName = userName.replace(/[.#$[\]]/g, '_');
-                await database.ref('events/' + eventId + '/responses/' + sanitizedName).set(response);
-                
-                // Update response count
-                const snapshot = await database.ref('events/' + eventId + '/responses').once('value');
-                const count = snapshot.val() ? Object.keys(snapshot.val()).length : 0;
-                await database.ref('events/' + eventId + '/responseCount').set(count);
-                
+                await responsesRef.child(sanitizedName).set(response);
                 showSuccessMessage(`Thanks ${userName}! Your availability has been saved.`);
             } catch (error) {
                 console.error('Error saving:', error);
                 alert('Error saving data. Please try again.');
             }
         }
-
-        function showError(message) {
-            document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('errorState').style.display = 'block';
-            document.getElementById('errorMessage').textContent = message;
-        }
-
-        // Load event on page load
-        loadEvent();
     </script>
 </body>
 </html>
