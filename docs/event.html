@@ -558,6 +558,14 @@
                     return;
                 }
 
+                // Normalize arrays (Firebase converts arrays to objects)
+                if (eventData.excludedWeekdays && typeof eventData.excludedWeekdays === 'object' && !Array.isArray(eventData.excludedWeekdays)) {
+                    eventData.excludedWeekdays = Object.values(eventData.excludedWeekdays);
+                }
+                if (eventData.excludedDates && typeof eventData.excludedDates === 'object' && !Array.isArray(eventData.excludedDates)) {
+                    eventData.excludedDates = Object.values(eventData.excludedDates);
+                }
+
                 // Verify admin key
                 if (adminKey && adminKey === eventData.adminKey) {
                     isAdmin = true;

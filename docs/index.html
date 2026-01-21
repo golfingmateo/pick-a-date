@@ -1199,6 +1199,7 @@
                 dateBegin: document.getElementById('dateBegin').value,
                 dateEnd: document.getElementById('dateEnd').value,
                 maxResponses: parseInt(document.getElementById('maxResponses').value) || null,
+                // Note: Firebase converts arrays to objects, but we normalize them when loading
                 excludedWeekdays: excludedWeekdays,
                 excludedDates: excludedDates,
                 adminKey: adminKey,
