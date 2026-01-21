@@ -478,7 +478,11 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
-        const responsesRef = database.ref('responses');
+
+        // Hardcoded legacy event ID for "Let's play Golf"
+        const eventId = 'zm0h5kas5lnn0rat71x4m';
+
+        const responsesRef = database.ref('events/' + eventId + '/responses');
 
         // Generate weekday dates starting from the most recent Monday
         const dates = [];
@@ -518,8 +522,8 @@
             const data = snapshot.val();
             allResponses = data ? Object.values(data) : [];
             
-            // Load user's previous response if exists
-            const savedName = localStorage.getItem('golfUserName') || '';
+            // Load user's previous response if exists (scoped to this event)
+            const savedName = localStorage.getItem('golfUserName_' + eventId) || '';
             if (savedName) {
                 const previousResponse = allResponses.find(r => r.name === savedName);
                 if (previousResponse) {
@@ -639,7 +643,7 @@
 
         function updateSummary() {
             const bestDatesEl = document.getElementById('bestDates');
-            const currentUserName = localStorage.getItem('golfUserName') || '';
+            const currentUserName = localStorage.getItem('golfUserName_' + eventId) || '';
             
             const dateAvailability = {};
             dates.forEach(date => {
@@ -707,7 +711,7 @@
         }
 
         async function saveAvailability() {
-            const savedName = localStorage.getItem('golfUserName') || '';
+            const savedName = localStorage.getItem('golfUserName_' + eventId) || '';
             
             if (savedName) {
                 const response = {
@@ -720,6 +724,12 @@
                     // Use name as key (sanitized for Firebase)
                     const sanitizedName = savedName.replace(/[.#$[\]]/g, '_');
                     await responsesRef.child(sanitizedName).set(response);
+
+                    // Update response count
+                    const snapshot = await database.ref('events/' + eventId + '/responses').once('value');
+                    const count = snapshot.val() ? Object.keys(snapshot.val()).length : 0;
+                    await database.ref('events/' + eventId + '/responseCount').set(count);
+
                     showSuccessMessage(`Saved! Your availability has been updated.`);
                 } catch (error) {
                     console.error('Error saving:', error);
@@ -781,8 +791,8 @@
                 alert('Name is required to save your availability!');
                 return;
             }
-            
-            localStorage.setItem('golfUserName', userName);
+
+            localStorage.setItem('golfUserName_' + eventId, userName);
             closeNameModal();
 
             const response = {
@@ -794,6 +804,12 @@
             try {
                 const sanitizedName = userName.replace(/[.#$[\]]/g, '_');
                 await responsesRef.child(sanitizedName).set(response);
+
+                // Update response count
+                const snapshot = await database.ref('events/' + eventId + '/responses').once('value');
+                const count = snapshot.val() ? Object.keys(snapshot.val()).length : 0;
+                await database.ref('events/' + eventId + '/responseCount').set(count);
+
                 showSuccessMessage(`Thanks ${userName}! Your availability has been saved.`);
             } catch (error) {
                 console.error('Error saving:', error);
