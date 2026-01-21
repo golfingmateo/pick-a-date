@@ -653,9 +653,6 @@
                 // Ensure all values are numbers, not strings
                 eventData.excludedWeekdays = eventData.excludedWeekdays.map(d => typeof d === 'string' ? parseInt(d) : d);
 
-                console.log('Loaded excludedWeekdays:', eventData.excludedWeekdays);
-                console.log('Loaded excludedDates:', eventData.excludedDates);
-
                 if (!eventData.excludedDates) {
                     eventData.excludedDates = [];
                 } else if (typeof eventData.excludedDates === 'object' && !Array.isArray(eventData.excludedDates)) {
@@ -746,9 +743,6 @@
             const startDate = new Date(eventData.dateBegin + 'T00:00:00');
             const endDate = new Date(eventData.dateEnd + 'T00:00:00');
 
-            console.log('generateDates() - excludedWeekdays:', eventData.excludedWeekdays);
-            console.log('generateDates() - typeof each value:', eventData.excludedWeekdays.map(v => typeof v));
-
             const current = new Date(startDate);
             while (current <= endDate) {
                 const dayOfWeek = current.getDay();
@@ -757,11 +751,6 @@
                 // Check if this day/date is excluded
                 const isWeekdayExcluded = eventData.excludedWeekdays && eventData.excludedWeekdays.includes(dayOfWeek);
                 const isDateExcluded = eventData.excludedDates && eventData.excludedDates.includes(dateStr);
-
-                // Debug logging for first few dates
-                if (dates.length < 10) {
-                    console.log(`Date: ${current.toDateString()}, dayOfWeek: ${dayOfWeek}, isWeekdayExcluded: ${isWeekdayExcluded}, disabled: ${isWeekdayExcluded || isDateExcluded}`);
-                }
 
                 // Add all dates, marking which are disabled
                 dates.push({
@@ -900,12 +889,6 @@
                         const dateKey = date.toISOString().split('T')[0];
                         const availability = userAvailability[dateKey];
                         const isPast = date < todayDate;
-
-                        // Debug logging for weekend dates
-                        const dayOfWeek = date.getDay();
-                        if (dayOfWeek === 0 || dayOfWeek === 6) {
-                            console.log(`Rendering ${date.toDateString()}, dayOfWeek: ${dayOfWeek}, isDisabled: ${isDisabled}, dateObj.disabled: ${dateObj.disabled}`);
-                        }
 
                         // Count responses
                         let availableCount = 0;
