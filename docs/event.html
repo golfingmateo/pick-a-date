@@ -653,6 +653,9 @@
                 // Ensure all values are numbers, not strings
                 eventData.excludedWeekdays = eventData.excludedWeekdays.map(d => typeof d === 'string' ? parseInt(d) : d);
 
+                console.log('Loaded excludedWeekdays:', eventData.excludedWeekdays);
+                console.log('Loaded excludedDates:', eventData.excludedDates);
+
                 if (!eventData.excludedDates) {
                     eventData.excludedDates = [];
                 } else if (typeof eventData.excludedDates === 'object' && !Array.isArray(eventData.excludedDates)) {
