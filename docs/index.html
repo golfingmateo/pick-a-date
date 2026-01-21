@@ -27,35 +27,60 @@
         .header {
             background: white;
             border-radius: 16px;
-            padding: 40px;
-            margin-bottom: 30px;
+            padding: 30px;
+            margin-bottom: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             text-align: center;
         }
 
         h1 {
             color: #2d3748;
-            font-size: 36px;
-            margin-bottom: 10px;
+            font-size: 32px;
+            margin-bottom: 8px;
         }
 
         .subtitle {
             color: #718096;
+            font-size: 15px;
+        }
+
+        .create-event-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
             font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 15px;
+        }
+
+        .create-event-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .create-event-btn:active {
+            transform: translateY(0);
         }
 
         .card {
             background: white;
             border-radius: 16px;
-            padding: 30px;
+            padding: 25px;
             margin-bottom: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
         .card h2 {
             color: #2d3748;
-            font-size: 24px;
-            margin-bottom: 20px;
+            font-size: 22px;
+            margin-bottom: 18px;
         }
 
         .form-group {
@@ -356,9 +381,9 @@
 
         .event-item {
             background: #f7fafc;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
             border-left: 4px solid;
             transition: all 0.2s ease;
         }
@@ -376,14 +401,14 @@
         }
 
         .event-title {
-            font-size: 20px;
+            font-size: 17px;
             font-weight: 700;
             color: #2d3748;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         .event-meta {
-            font-size: 14px;
+            font-size: 13px;
             color: #718096;
         }
 
@@ -458,6 +483,10 @@
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
+        }
+
+        .modal-content.large {
+            max-width: 700px;
         }
 
         .modal-header {
@@ -602,10 +631,28 @@
         <div class="header">
             <h1>📅 Pick a Date</h1>
             <p class="subtitle">Create and manage your scheduling events</p>
+            <button class="create-event-btn" onclick="openCreateEventModal()">✨ Create New Event</button>
         </div>
 
         <div class="card">
-            <h2>Create New Event</h2>
+            <h2>Your Events</h2>
+            <ul class="event-list" id="eventList">
+                <li class="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <p>No events yet. Create your first event above!</p>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Create Event Modal -->
+    <div class="modal" id="createEventModal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2>Create New Event</h2>
+                <button class="modal-close" onclick="closeCreateEventModal()">×</button>
+            </div>
+
             <form id="eventForm">
                 <div class="form-group">
                     <label for="eventTitle">Event Title *</label>
@@ -618,44 +665,22 @@
                 </div>
 
                 <!-- Date Settings Section -->
-                <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                    <h3 style="color: #475569; font-size: 16px; margin-bottom: 15px; font-weight: 600;">📅 Date Settings</h3>
-                    
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label>Date Range *</label>
-                        <input type="date" id="dateBegin" required style="display: none;">
-                        <input type="date" id="dateEnd" required style="display: none;">
-                        
-                        <button type="button" class="date-picker-btn" onclick="showDateRangePicker()">
-                            <span id="dateRangeDisplay">📅 Pick Date Range</span>
-                        </button>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label>Exclude Days of Week</label>
-                        <div class="weekday-selector">
-                            <button type="button" class="weekday-btn" data-day="1">Mon</button>
-                            <button type="button" class="weekday-btn" data-day="2">Tue</button>
-                            <button type="button" class="weekday-btn" data-day="3">Wed</button>
-                            <button type="button" class="weekday-btn" data-day="4">Thu</button>
-                            <button type="button" class="weekday-btn" data-day="5">Fri</button>
-                            <button type="button" class="weekday-btn excluded" data-day="6">Sat</button>
-                            <button type="button" class="weekday-btn excluded" data-day="0">Sun</button>
+                <div class="form-group">
+                    <label>Date Settings *</label>
+                    <input type="date" id="dateBegin" required style="display: none;">
+                    <input type="date" id="dateEnd" required style="display: none;">
+                    <button type="button" class="date-picker-btn" onclick="openDateSettingsModal()">
+                        <div id="dateSettingsSummary" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
+                            <span id="dateRangeDisplay" style="font-weight: 600;">📅 Pick Date Range</span>
+                            <span id="exclusionsSummary" style="font-size: 13px; color: #718096; font-weight: normal;"></span>
                         </div>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label>Exclude Specific Dates</label>
-                        <p style="font-size: 14px; color: #718096; margin-bottom: 10px;">Select dates from your event range to exclude</p>
-                        <button type="button" class="link-btn" onclick="showDateExclusionCalendar()" style="width: auto; padding: 10px 20px;">📅 Pick Dates to Exclude</button>
-                        <div class="excluded-date-list" id="excludedDatesList"></div>
-                    </div>
+                    </button>
                 </div>
 
                 <!-- Extra Settings Section -->
                 <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
                     <h3 style="color: #475569; font-size: 16px; margin-bottom: 15px; font-weight: 600;">⚙️ Extra Settings</h3>
-                    
+
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label>Background Color</label>
@@ -674,16 +699,6 @@
 
                 <button type="submit" class="btn">Create Event</button>
             </form>
-        </div>
-
-        <div class="card">
-            <h2>Your Events</h2>
-            <ul class="event-list" id="eventList">
-                <li class="empty-state">
-                    <div class="empty-state-icon">📭</div>
-                    <p>No events yet. Create your first event above!</p>
-                </li>
-            </ul>
         </div>
     </div>
 
@@ -739,6 +754,45 @@
             <div class="calendar-grid" id="calendarGrid"></div>
             
             <button class="btn" onclick="closeCalendarModal()" style="margin-top: 20px;">Done</button>
+        </div>
+    </div>
+
+    <!-- Date Settings Modal -->
+    <div class="modal" id="dateSettingsModal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2>📅 Date Settings</h2>
+                <button class="modal-close" onclick="closeDateSettingsModal()">×</button>
+            </div>
+
+            <div class="form-group">
+                <label>Date Range *</label>
+                <button type="button" class="date-picker-btn" onclick="showDateRangePicker()">
+                    <span id="dateRangeDisplayInner">📅 Pick Date Range</span>
+                </button>
+            </div>
+
+            <div class="form-group">
+                <label>Exclude Days of Week</label>
+                <div class="weekday-selector">
+                    <button type="button" class="weekday-btn" data-day="1">Mon</button>
+                    <button type="button" class="weekday-btn" data-day="2">Tue</button>
+                    <button type="button" class="weekday-btn" data-day="3">Wed</button>
+                    <button type="button" class="weekday-btn" data-day="4">Thu</button>
+                    <button type="button" class="weekday-btn" data-day="5">Fri</button>
+                    <button type="button" class="weekday-btn excluded" data-day="6">Sat</button>
+                    <button type="button" class="weekday-btn excluded" data-day="0">Sun</button>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Exclude Specific Dates</label>
+                <p style="font-size: 14px; color: #718096; margin-bottom: 10px;">Select dates from your event range to exclude</p>
+                <button type="button" class="link-btn" onclick="showDateExclusionCalendar()" style="width: auto; padding: 10px 20px;">📅 Pick Dates to Exclude</button>
+                <div class="excluded-date-list" id="excludedDatesList"></div>
+            </div>
+
+            <button class="btn" onclick="confirmDateSettings()" style="margin-top: 20px;">Save Date Settings</button>
         </div>
     </div>
 
@@ -952,27 +1006,17 @@
                 alert('Please select both start and end dates');
                 return;
             }
-            
+
             // Set the hidden inputs
             const startStr = pickerStartDate.toISOString().split('T')[0];
             const endStr = pickerEndDate.toISOString().split('T')[0];
-            
+
             document.getElementById('dateBegin').value = startStr;
             document.getElementById('dateEnd').value = endStr;
-            
-            // Update button display
-            const startFormatted = pickerStartDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric'
-            });
-            const endFormatted = pickerEndDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            });
-            
-            document.getElementById('dateRangeDisplay').textContent = `📅 ${startFormatted} → ${endFormatted}`;
-            
+
+            // Update displays
+            updateDateSettingsSummary();
+
             // Close modal
             closeDateRangePicker();
         }
@@ -1222,6 +1266,9 @@
                 });
                 localStorage.setItem('myEvents', JSON.stringify(localEvents));
 
+                // Close create event modal
+                closeCreateEventModal();
+
                 // Show success modal
                 currentEventId = eventId;
                 currentAdminKey = adminKey;
@@ -1232,7 +1279,7 @@
                 excludedDates = [];
                 excludedWeekdays = [0, 6]; // Reset to Sunday and Saturday
                 renderExcludedDates();
-                
+
                 // Reset weekday buttons
                 document.querySelectorAll('.weekday-btn').forEach(btn => {
                     btn.classList.remove('excluded');
@@ -1265,6 +1312,66 @@
 
         function closeLinksModal() {
             document.getElementById('linksModal').classList.remove('active');
+        }
+
+        function openCreateEventModal() {
+            document.getElementById('createEventModal').classList.add('active');
+        }
+
+        function closeCreateEventModal() {
+            document.getElementById('createEventModal').classList.remove('active');
+        }
+
+        function openDateSettingsModal() {
+            document.getElementById('dateSettingsModal').classList.add('active');
+        }
+
+        function closeDateSettingsModal() {
+            document.getElementById('dateSettingsModal').classList.remove('active');
+        }
+
+        function confirmDateSettings() {
+            updateDateSettingsSummary();
+            closeDateSettingsModal();
+        }
+
+        function updateDateSettingsSummary() {
+            const beginDate = document.getElementById('dateBegin').value;
+            const endDate = document.getElementById('dateEnd').value;
+
+            if (beginDate && endDate) {
+                const start = new Date(beginDate + 'T00:00:00');
+                const end = new Date(endDate + 'T00:00:00');
+
+                const startFormatted = start.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric'
+                });
+                const endFormatted = end.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+
+                const rangeText = `📅 ${startFormatted} → ${endFormatted}`;
+                document.getElementById('dateRangeDisplay').innerHTML = `<span style="font-weight: 600;">${rangeText}</span>`;
+                document.getElementById('dateRangeDisplayInner').textContent = rangeText;
+
+                // Build exclusions summary
+                const exclusions = [];
+
+                if (excludedWeekdays.length > 0) {
+                    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                    const excludedDayNames = excludedWeekdays.map(d => dayNames[d]);
+                    exclusions.push(`Excluding ${excludedDayNames.join(', ')}`);
+                }
+
+                if (excludedDates.length > 0) {
+                    exclusions.push(`${excludedDates.length} specific date${excludedDates.length > 1 ? 's' : ''} excluded`);
+                }
+
+                document.getElementById('exclusionsSummary').textContent = exclusions.join(' • ');
+            }
         }
 
         function copyPublicLink() {
@@ -1330,7 +1437,7 @@
             const tomorrow = new Date();
             tomorrow.setDate(tomorrow.getDate() + 1);
             tomorrow.setHours(0, 0, 0, 0);
-            
+
             const endDate = new Date(tomorrow);
             endDate.setDate(endDate.getDate() + 30);
 
@@ -1338,23 +1445,13 @@
             pickerStartDate = tomorrow;
             pickerEndDate = endDate;
             pickerCurrentMonth = new Date(tomorrow);
-            
+
             // Set hidden inputs
             document.getElementById('dateBegin').value = tomorrow.toISOString().split('T')[0];
             document.getElementById('dateEnd').value = endDate.toISOString().split('T')[0];
-            
-            // Update button display
-            const startFormatted = tomorrow.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric'
-            });
-            const endFormatted = endDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            });
-            
-            document.getElementById('dateRangeDisplay').textContent = `📅 ${startFormatted} → ${endFormatted}`;
+
+            // Update summary display
+            updateDateSettingsSummary();
         }
 
         // Initialize with default dates
