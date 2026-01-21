@@ -146,6 +146,14 @@
             font-weight: 600;
         }
 
+        .admin-section {
+            background: #fff7ed;
+            border: 2px solid #fbbf24;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
         .dates-section {
             margin-bottom: 32px;
         }
@@ -460,6 +468,22 @@
                 🚫 This event is closed. Maximum responses reached.
             </div>
 
+            <div id="adminControls" class="admin-section" style="display: none;">
+                <h3 style="color: #f59e0b; margin-bottom: 15px;">🔐 Admin Controls</h3>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button onclick="viewDashboard()" style="flex: 1; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">
+                        📊 View Dashboard
+                    </button>
+                    <button onclick="deleteEvent()" style="flex: 1; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                        🗑️ Delete Event
+                    </button>
+                </div>
+                <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 14px; color: #78350f;">
+                    <strong>Responses:</strong> <span id="responseCount">0</span> 
+                    <span id="maxResponsesText"></span>
+                </div>
+            </div>
+
             <div id="activeEvent">
                 <div class="summary-section">
                     <div class="summary-title">Everyone's Available</div>
@@ -511,7 +535,8 @@
         // Get event ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const eventId = urlParams.get('event');
-        const isAdmin = urlParams.has('admin');
+        const adminKey = urlParams.get('admin');
+        let isAdmin = false;
 
         if (!eventId) {
             showError('No event ID provided in URL');
@@ -531,6 +556,18 @@
                 if (!eventData) {
                     showError('Event not found');
                     return;
+                }
+
+                // Verify admin key
+                if (adminKey && adminKey === eventData.adminKey) {
+                    isAdmin = true;
+                    document.getElementById('adminControls').style.display = 'block';
+                    
+                    // Update response count display
+                    const maxText = eventData.maxResponses 
+                        ? ` / ${eventData.maxResponses} max`
+                        : ' (unlimited)';
+                    document.getElementById('maxResponsesText').textContent = maxText;
                 }
 
                 // Set page title and background
@@ -622,6 +659,11 @@
             database.ref('events/' + eventId + '/responses').on('value', (snapshot) => {
                 const data = snapshot.val();
                 allResponses = data ? Object.values(data) : [];
+                
+                // Update admin response count
+                if (isAdmin) {
+                    document.getElementById('responseCount').textContent = allResponses.length;
+                }
                 
                 // Check if event is closed
                 if (eventData.maxResponses && allResponses.length >= eventData.maxResponses) {
@@ -917,6 +959,41 @@
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('errorState').style.display = 'block';
             document.getElementById('errorMessage').textContent = message;
+        }
+
+        // Admin functions
+        function viewDashboard() {
+            const baseUrl = window.location.origin + window.location.pathname.replace('event.html', '');
+            const dashboardUrl = `${baseUrl}dashboard.html?event=${eventId}&admin=${adminKey}`;
+            window.open(dashboardUrl, '_blank');
+        }
+
+        async function deleteEvent() {
+            if (!confirm(`Are you sure you want to delete "${eventData.title}"? This cannot be undone!`)) {
+                return;
+            }
+
+            const confirmText = prompt('Type DELETE to confirm:');
+            if (confirmText !== 'DELETE') {
+                alert('Event not deleted.');
+                return;
+            }
+
+            try {
+                await database.ref('events/' + eventId).remove();
+                alert('Event deleted successfully!');
+                
+                // Remove from localStorage
+                const localEvents = JSON.parse(localStorage.getItem('myEvents') || '[]');
+                const updatedEvents = localEvents.filter(e => e.id !== eventId);
+                localStorage.setItem('myEvents', JSON.stringify(updatedEvents));
+                
+                // Redirect to home
+                window.location.href = window.location.origin + window.location.pathname.replace('event.html', 'index.html');
+            } catch (error) {
+                console.error('Error deleting event:', error);
+                alert('Error deleting event. Please try again.');
+            }
         }
 
         // Load event on page load
