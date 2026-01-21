@@ -397,16 +397,30 @@
             }
 
             .dates-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
+                grid-template-columns: repeat(5, 1fr);
+                gap: 6px;
             }
 
             .date-card {
-                padding: 12px;
+                padding: 8px 4px;
             }
 
             .date-card .date-number {
-                font-size: 24px;
+                font-size: 18px;
+            }
+
+            .date-card .status {
+                display: none;
+            }
+
+            .availability-dots {
+                top: 3px;
+                gap: 2px;
+            }
+
+            .availability-dot {
+                width: 5px;
+                height: 5px;
             }
         }
     </style>
