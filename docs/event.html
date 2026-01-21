@@ -611,8 +611,8 @@
                 generateDates();
 
                 // Initialize user availability
-                dates.forEach(date => {
-                    userAvailability[date.toISOString().split('T')[0]] = null;
+                dates.forEach(dateObj => {
+                    userAvailability[dateObj.date.toISOString().split('T')[0]] = null;
                 });
 
                 // Load responses
