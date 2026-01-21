@@ -173,6 +173,23 @@
             border-bottom: 2px solid #e2e8f0;
         }
 
+        .weekday-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .weekday-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 4px;
+        }
+
         .dates-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -455,6 +472,15 @@
 
             h1 {
                 font-size: 24px;
+            }
+
+            .weekday-header {
+                gap: 3px;
+                margin-bottom: 6px;
+            }
+
+            .weekday-label {
+                font-size: 10px;
             }
 
             .dates-grid {
@@ -833,12 +859,23 @@
                 
                 const monthGroup = document.createElement('div');
                 monthGroup.className = 'month-group';
-                
+
                 const monthHeader = document.createElement('div');
                 monthHeader.className = 'month-header';
                 monthHeader.textContent = monthKey;
                 monthGroup.appendChild(monthHeader);
-                
+
+                // Add weekday header
+                const weekdayHeader = document.createElement('div');
+                weekdayHeader.className = 'weekday-header';
+                ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].forEach(day => {
+                    const label = document.createElement('div');
+                    label.className = 'weekday-label';
+                    label.textContent = day;
+                    weekdayHeader.appendChild(label);
+                });
+                monthGroup.appendChild(weekdayHeader);
+
                 const grid = document.createElement('div');
                 grid.className = 'dates-grid';
                 
