@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Debug Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .section {
+            background: #2d2d2d;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .section h2 {
+            color: #4ec9b0;
+            margin-top: 0;
+        }
+        .success {
+            color: #4ec9b0;
+        }
+        .error {
+            color: #f48771;
+        }
+        .info {
+            color: #dcdcaa;
+        }
+        pre {
+            background: #1e1e1e;
+            border: 1px solid #444;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #1177bb;
+        }
+        input {
+            background: #3c3c3c;
+            border: 1px solid #555;
+            color: #d4d4d4;
+            padding: 8px;
+            border-radius: 4px;
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Firebase Event Debug Tool</h1>
+
+    <div class="section">
+        <h2>Test Event ID</h2>
+        <input type="text" id="eventIdInput" value="58u3qx44ra3q1rwokbr6u" placeholder="Enter event ID">
+        <button onclick="testEvent()">Test This Event</button>
+        <button onclick="testEvent('zm0h5kas5lnn0rat71x4m')">Test Golf Event</button>
+    </div>
+
+    <div class="section">
+        <h2>Connection Status</h2>
+        <div id="connectionStatus">Initializing Firebase...</div>
+    </div>
+
+    <div class="section">
+        <h2>Event Data</h2>
+        <div id="eventResult">Click "Test This Event" to load event data</div>
+    </div>
+
+    <div class="section">
+        <h2>All Events in Database</h2>
+        <button onclick="listAllEvents()">List All Events</button>
+        <div id="allEvents"></div>
+    </div>
+
+    <div class="section">
+        <h2>Raw Firebase Response</h2>
+        <pre id="rawResponse">No data loaded yet</pre>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyASUTmWxGbTSah_Pkxa_VIjJvppxc4dojE",
+            authDomain: "pick-a-date-d0fc8.firebaseapp.com",
+            databaseURL: "https://pick-a-date-d0fc8-default-rtdb.firebaseio.com",
+            projectId: "pick-a-date-d0fc8",
+            storageBucket: "pick-a-date-d0fc8.firebasestorage.app",
+            messagingSenderId: "634466045922",
+            appId: "1:634466045922:web:349c47805fc003390bf3bb",
+            measurementId: "G-DQTMRQZFCC"
+        };
+
+        // Initialize Firebase
+        let database;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            log('connectionStatus', '<span class="success">✓ Firebase initialized successfully</span>');
+
+            // Test connection
+            database.ref('.info/connected').on('value', (snapshot) => {
+                if (snapshot.val() === true) {
+                    log('connectionStatus', '<span class="success">✓ Connected to Firebase</span>');
+                } else {
+                    log('connectionStatus', '<span class="error">✗ Disconnected from Firebase</span>');
+                }
+            });
+        } catch (error) {
+            log('connectionStatus', `<span class="error">✗ Firebase initialization error: ${error.message}</span>`);
+            console.error('Firebase init error:', error);
+        }
+
+        function log(elementId, message) {
+            document.getElementById(elementId).innerHTML = message;
+        }
+
+        async function testEvent(eventId) {
+            if (!eventId) {
+                eventId = document.getElementById('eventIdInput').value.trim();
+            }
+
+            if (!eventId) {
+                log('eventResult', '<span class="error">Please enter an event ID</span>');
+                return;
+            }
+
+            log('eventResult', '<span class="info">Loading event ' + eventId + '...</span>');
+            log('rawResponse', 'Loading...');
+
+            try {
+                const ref = database.ref('events/' + eventId);
+                console.log('Firebase ref path:', ref.toString());
+
+                const snapshot = await ref.once('value');
+                const eventData = snapshot.val();
+
+                // Log raw response
+                document.getElementById('rawResponse').textContent = JSON.stringify(eventData, null, 2);
+
+                if (!eventData) {
+                    log('eventResult', `<span class="error">✗ Event "${eventId}" not found in Firebase</span>
+                        <br><br>The Firebase query returned null.
+                        <br>Path: events/${eventId}
+                        <br><br>Possible reasons:
+                        <br>1. Event doesn't exist in Firebase
+                        <br>2. Event was deleted
+                        <br>3. Firebase rules are blocking read access
+                        <br>4. Event ID is incorrect`);
+                } else {
+                    let html = '<span class="success">✓ Event found!</span><br><br>';
+                    html += '<strong>Title:</strong> ' + (eventData.title || 'N/A') + '<br>';
+                    html += '<strong>ID:</strong> ' + (eventData.id || 'N/A') + '<br>';
+                    html += '<strong>Created:</strong> ' + (eventData.created || 'N/A') + '<br>';
+                    html += '<strong>Date Range:</strong> ' + (eventData.dateBegin || 'N/A') + ' to ' + (eventData.dateEnd || 'N/A') + '<br>';
+                    html += '<strong>Has excludedWeekdays:</strong> ' + (eventData.excludedWeekdays ? 'Yes (' + JSON.stringify(eventData.excludedWeekdays) + ')' : 'No') + '<br>';
+                    html += '<strong>Has excludedDates:</strong> ' + (eventData.excludedDates ? 'Yes (' + JSON.stringify(eventData.excludedDates) + ')' : 'No') + '<br>';
+                    html += '<strong>Max Responses:</strong> ' + (eventData.maxResponses || 'Unlimited') + '<br>';
+                    html += '<strong>Response Count:</strong> ' + (eventData.responseCount || 0) + '<br>';
+
+                    log('eventResult', html);
+                }
+            } catch (error) {
+                log('eventResult', `<span class="error">✗ Error loading event: ${error.message}</span>`);
+                log('rawResponse', 'Error: ' + error.toString());
+                console.error('Error details:', error);
+            }
+        }
+
+        async function listAllEvents() {
+            log('allEvents', '<span class="info">Loading all events...</span>');
+
+            try {
+                const snapshot = await database.ref('events').once('value');
+                const allEvents = snapshot.val();
+
+                if (!allEvents) {
+                    log('allEvents', '<span class="error">No events found in database</span>');
+                    return;
+                }
+
+                const eventIds = Object.keys(allEvents);
+                let html = `<span class="success">✓ Found ${eventIds.length} event(s)</span><br><br>`;
+
+                eventIds.forEach(id => {
+                    const event = allEvents[id];
+                    html += `<div style="background: #1e1e1e; padding: 10px; margin: 10px 0; border-radius: 4px;">`;
+                    html += `<strong>ID:</strong> ${id}<br>`;
+                    html += `<strong>Title:</strong> ${event.title || 'N/A'}<br>`;
+                    html += `<strong>Created:</strong> ${event.created || 'N/A'}<br>`;
+                    html += `<button onclick="testEvent('${id}')">Test This Event</button>`;
+                    html += `<button onclick="navigator.clipboard.writeText('${window.location.origin}${window.location.pathname.replace('test-firebase.html', '')}event.html?event=${id}')">Copy Event URL</button>`;
+                    html += `</div>`;
+                });
+
+                log('allEvents', html);
+            } catch (error) {
+                log('allEvents', `<span class="error">✗ Error listing events: ${error.message}</span>`);
+                console.error('Error details:', error);
+            }
+        }
+
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testEvent(document.getElementById('eventIdInput').value);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
