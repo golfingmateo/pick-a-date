@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golf Date Picker - Results Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #2d3748;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 16px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            color: #2d3748;
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .best-dates {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .best-date-card {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .best-date-card .date {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .best-date-card .count {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .calendar-date {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px 10px;
+            text-align: center;
+        }
+
+        .calendar-date.popular {
+            background: #d1fae5;
+            border-color: #10b981;
+        }
+
+        .calendar-date.mixed {
+            background: #fef3c7;
+            border-color: #f59e0b;
+        }
+
+        .calendar-date .date-num {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .calendar-date .date-label {
+            font-size: 11px;
+            color: #718096;
+            margin-bottom: 8px;
+        }
+
+        .calendar-date .availability {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .availability .available {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .availability .unavailable {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .people-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .person-card {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .person-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .person-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .person-stats {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        .person-dates {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .date-tag {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .date-tag.available {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .date-tag.unavailable {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+            font-size: 18px;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+        }
+
+        .month-section {
+            margin-bottom: 30px;
+        }
+
+        .month-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        @media (max-width: 768px) {
+            .calendar-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⛳ Golf Tournament Dashboard</h1>
+            <p class="subtitle">View all responses and find the best dates</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalPeople">-</div>
+                <div class="stat-label">Total Responses</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="bestDatesCount">-</div>
+                <div class="stat-label">Perfect Dates</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalDates">-</div>
+                <div class="stat-label">Dates Available</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; border: none; padding: 0;">🎯 Best Dates (Everyone Available)</h2>
+                <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
+            </div>
+            <div class="best-dates" id="bestDates">
+                <div class="no-data">Loading...</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📅 All Dates Overview</h2>
+            <div id="calendarView"></div>
+        </div>
+
+        <div class="section">
+            <h2>👥 Individual Responses</h2>
+            <div class="people-list" id="peopleList">
+                <div class="no-data">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        // Firebase configuration - MUST MATCH picker.html
+        const firebaseConfig = {
+            apiKey: "AIzaSyASUTmWxGbTSah_Pkxa_VIjJvppxc4dojE",
+            authDomain: "pick-a-date-d0fc8.firebaseapp.com",
+            databaseURL: "https://pick-a-date-d0fc8-default-rtdb.firebaseio.com",
+            projectId: "pick-a-date-d0fc8",
+            storageBucket: "pick-a-date-d0fc8.firebasestorage.app",
+            messagingSenderId: "634466045922",
+            appId: "1:634466045922:web:349c47805fc003390bf3bb",
+            measurementId: "G-DQTMRQZFCC"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Generate weekday dates starting from the most recent Monday (same as main app)
+        const dates = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        let startDate = new Date(today);
+        const currentDay = startDate.getDay();
+        const daysToMonday = currentDay === 0 ? -6 : -(currentDay - 1);
+        startDate.setDate(startDate.getDate() + daysToMonday);
+        
+        let daysAdded = 0;
+        let dayOffset = 0;
+        
+        while (daysAdded < 30) {
+            const date = new Date(startDate);
+            date.setDate(startDate.getDate() + dayOffset);
+            const dayOfWeek = date.getDay();
+            
+            if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                dates.push(date);
+                daysAdded++;
+            }
+            dayOffset++;
+        }
+
+        let allResponses = [];
+
+        async function loadData() {
+            try {
+                const snapshot = await db.ref('responses').once('value');
+                const data = snapshot.val();
+                allResponses = data ? Object.values(data) : [];
+                renderDashboard();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('bestDates').innerHTML = '<div class="no-data">Error loading data</div>';
+            }
+        }
+
+        function renderDashboard() {
+            if (allResponses.length === 0) {
+                document.getElementById('bestDates').innerHTML = '<div class="no-data">No responses yet</div>';
+                document.getElementById('peopleList').innerHTML = '<div class="no-data">No responses yet</div>';
+                document.getElementById('calendarView').innerHTML = '<div class="no-data">No data to display</div>';
+                return;
+            }
+
+            renderStats();
+            renderBestDates();
+            renderCalendarView();
+            renderPeopleList();
+        }
+
+        function renderStats() {
+            document.getElementById('totalPeople').textContent = allResponses.length;
+            
+            // Calculate best dates
+            const dateAvailability = {};
+            dates.forEach(date => {
+                const dateKey = date.toISOString().split('T')[0];
+                dateAvailability[dateKey] = { available: 0, unavailable: 0 };
+            });
+
+            allResponses.forEach(response => {
+                Object.keys(response.availability).forEach(dateKey => {
+                    if (dateAvailability[dateKey]) {
+                        if (response.availability[dateKey] === true) {
+                            dateAvailability[dateKey].available++;
+                        } else if (response.availability[dateKey] === false) {
+                            dateAvailability[dateKey].unavailable++;
+                        }
+                    }
+                });
+            });
+
+            const bestDates = Object.values(dateAvailability).filter(
+                d => d.available === allResponses.length && d.unavailable === 0
+            );
+
+            document.getElementById('bestDatesCount').textContent = bestDates.length;
+            document.getElementById('totalDates').textContent = dates.length;
+        }
+
+        function renderBestDates() {
+            const dateAvailability = {};
+            dates.forEach(date => {
+                const dateKey = date.toISOString().split('T')[0];
+                dateAvailability[dateKey] = { date, available: 0, unavailable: 0 };
+            });
+
+            allResponses.forEach(response => {
+                Object.keys(response.availability).forEach(dateKey => {
+                    if (dateAvailability[dateKey]) {
+                        if (response.availability[dateKey] === true) {
+                            dateAvailability[dateKey].available++;
+                        } else if (response.availability[dateKey] === false) {
+                            dateAvailability[dateKey].unavailable++;
+                        }
+                    }
+                });
+            });
+
+            const bestDates = Object.values(dateAvailability)
+                .filter(d => d.available === allResponses.length && d.unavailable === 0)
+                .sort((a, b) => a.date - b.date);
+
+            const container = document.getElementById('bestDates');
+            
+            if (bestDates.length === 0) {
+                container.innerHTML = '<div class="no-data">No dates where everyone is available</div>';
+                return;
+            }
+
+            container.innerHTML = bestDates.map(d => {
+                const dateStr = d.date.toLocaleDateString('en-US', { 
+                    weekday: 'short', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                return `
+                    <div class="best-date-card">
+                        <div class="date">${dateStr}</div>
+                        <div class="count">${d.available}/${allResponses.length} available</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderCalendarView() {
+            const dateAvailability = {};
+            dates.forEach(date => {
+                const dateKey = date.toISOString().split('T')[0];
+                dateAvailability[dateKey] = { date, available: 0, unavailable: 0 };
+            });
+
+            allResponses.forEach(response => {
+                Object.keys(response.availability).forEach(dateKey => {
+                    if (dateAvailability[dateKey]) {
+                        if (response.availability[dateKey] === true) {
+                            dateAvailability[dateKey].available++;
+                        } else if (response.availability[dateKey] === false) {
+                            dateAvailability[dateKey].unavailable++;
+                        }
+                    }
+                });
+            });
+
+            // Group by month
+            const datesByMonth = {};
+            Object.values(dateAvailability).forEach(d => {
+                const monthKey = d.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                if (!datesByMonth[monthKey]) {
+                    datesByMonth[monthKey] = [];
+                }
+                datesByMonth[monthKey].push(d);
+            });
+
+            const container = document.getElementById('calendarView');
+            container.innerHTML = Object.keys(datesByMonth).map(monthKey => {
+                const monthDates = datesByMonth[monthKey];
+                
+                const datesHtml = monthDates.map(d => {
+                    let className = 'calendar-date';
+                    if (d.available === allResponses.length && d.unavailable === 0) {
+                        className += ' popular';
+                    } else if (d.available > 0 && d.unavailable > 0) {
+                        className += ' mixed';
+                    }
+
+                    const dateLabel = d.date.toLocaleDateString('en-US', { weekday: 'short' });
+                    
+                    return `
+                        <div class="${className}">
+                            <div class="date-num">${d.date.getDate()}</div>
+                            <div class="date-label">${dateLabel}</div>
+                            <div class="availability">
+                                ${d.available > 0 ? `<span class="available">✓ ${d.available}</span>` : ''}
+                                ${d.unavailable > 0 ? `<span class="unavailable">✗ ${d.unavailable}</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="month-section">
+                        <div class="month-header">${monthKey}</div>
+                        <div class="calendar-grid">${datesHtml}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderPeopleList() {
+            const container = document.getElementById('peopleList');
+            
+            container.innerHTML = allResponses.map(response => {
+                const availableDates = [];
+                const unavailableDates = [];
+
+                Object.keys(response.availability).forEach(dateKey => {
+                    const date = dates.find(d => d.toISOString().split('T')[0] === dateKey);
+                    if (date) {
+                        const dateStr = date.toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric' 
+                        });
+                        
+                        if (response.availability[dateKey] === true) {
+                            availableDates.push(dateStr);
+                        } else if (response.availability[dateKey] === false) {
+                            unavailableDates.push(dateStr);
+                        }
+                    }
+                });
+
+                const totalResponses = availableDates.length + unavailableDates.length;
+
+                return `
+                    <div class="person-card">
+                        <div class="person-header">
+                            <div class="person-name">${response.name}</div>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div class="person-stats">
+                                    ${availableDates.length} available · ${unavailableDates.length} unavailable
+                                </div>
+                                <button class="delete-btn" onclick="deleteUser('${response.name}')">Delete</button>
+                            </div>
+                        </div>
+                        <div class="person-dates">
+                            ${availableDates.map(d => `<span class="date-tag available">✓ ${d}</span>`).join('')}
+                            ${unavailableDates.map(d => `<span class="date-tag unavailable">✗ ${d}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function deleteUser(userName) {
+            if (!confirm(`Are you sure you want to delete ${userName}'s response?`)) {
+                return;
+            }
+
+            // Remove user from Firebase (sanitize name to match how it was saved)
+            try {
+                const sanitizedName = userName.replace(/[.#$[\]]/g, '_');
+                await db.ref('responses/' + sanitizedName).remove();
+                
+                // Reload and re-render
+                loadData();
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                alert('Error deleting user. Please try again.');
+            }
+        }
+
+        // Load data on page load
+        loadData();
+    </script>
+</body>
+</html>
