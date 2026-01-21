@@ -650,6 +650,8 @@
                 } else if (typeof eventData.excludedWeekdays === 'object' && !Array.isArray(eventData.excludedWeekdays)) {
                     eventData.excludedWeekdays = Object.values(eventData.excludedWeekdays);
                 }
+                // Ensure all values are numbers, not strings
+                eventData.excludedWeekdays = eventData.excludedWeekdays.map(d => typeof d === 'string' ? parseInt(d) : d);
 
                 if (!eventData.excludedDates) {
                     eventData.excludedDates = [];
