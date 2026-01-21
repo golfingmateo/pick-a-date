@@ -740,6 +740,9 @@
         }
 
         function generateDates() {
+            // Clear dates array first
+            dates = [];
+
             const startDate = new Date(eventData.dateBegin + 'T00:00:00');
             const endDate = new Date(eventData.dateEnd + 'T00:00:00');
 
