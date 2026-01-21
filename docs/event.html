@@ -909,6 +909,12 @@
                         const availability = userAvailability[dateKey];
                         const isPast = date < todayDate;
 
+                        // Debug logging for weekend dates
+                        const dayOfWeek = date.getDay();
+                        if (dayOfWeek === 0 || dayOfWeek === 6) {
+                            console.log(`Rendering ${date.toDateString()}, dayOfWeek: ${dayOfWeek}, isDisabled: ${isDisabled}, dateObj.disabled: ${dateObj.disabled}`);
+                        }
+
                         // Count responses
                         let availableCount = 0;
                         let unavailableCount = 0;
