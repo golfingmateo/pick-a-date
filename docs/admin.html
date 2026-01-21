@@ -550,7 +550,10 @@
         function getBaseUrl() {
             const path = window.location.pathname;
             const origin = window.location.origin;
-            const dir = path.substring(0, path.lastIndexOf('/') + 1);
+            let dir = path.substring(0, path.lastIndexOf('/') + 1);
+            if (!dir || dir === '') {
+                dir = '/';
+            }
             return origin + dir;
         }
 

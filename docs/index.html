@@ -840,7 +840,12 @@
             const origin = window.location.origin;
             
             // Get directory path (remove filename if present)
-            const dir = path.substring(0, path.lastIndexOf('/') + 1);
+            let dir = path.substring(0, path.lastIndexOf('/') + 1);
+            
+            // Ensure we have at least a slash
+            if (!dir || dir === '') {
+                dir = '/';
+            }
             
             return origin + dir;
         }

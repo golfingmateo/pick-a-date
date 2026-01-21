@@ -774,8 +774,18 @@
             }
         }
 
+        function getBaseUrl() {
+            const path = window.location.pathname;
+            const origin = window.location.origin;
+            let dir = path.substring(0, path.lastIndexOf('/') + 1);
+            if (!dir || dir === '') {
+                dir = '/';
+            }
+            return origin + dir;
+        }
+
         function viewEvent() {
-            const baseUrl = window.location.origin + window.location.pathname.replace('dashboard.html', '');
+            const baseUrl = getBaseUrl();
             const eventUrl = `${baseUrl}event.html?event=${eventId}&admin=${adminKey}`;
             window.open(eventUrl, '_blank');
         }
@@ -798,7 +808,7 @@
                 const updatedEvents = localEvents.filter(e => e.id !== eventId);
                 localStorage.setItem('myEvents', JSON.stringify(updatedEvents));
                 
-                window.location.href = window.location.origin + window.location.pathname.replace('dashboard.html', 'index.html');
+                window.location.href = getBaseUrl() + 'index.html';
             } catch (error) {
                 console.error('Error deleting event:', error);
                 alert('Error deleting event');
