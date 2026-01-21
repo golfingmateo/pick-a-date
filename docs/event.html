@@ -173,7 +173,7 @@
 
         .dates-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(7, 1fr);
             gap: 12px;
         }
 
@@ -417,16 +417,16 @@
             }
 
             .dates-grid {
-                grid-template-columns: repeat(5, 1fr);
-                gap: 6px;
+                grid-template-columns: repeat(7, 1fr);
+                gap: 4px;
             }
 
             .date-card {
-                padding: 8px 4px;
+                padding: 6px 2px;
             }
 
             .date-card .date-number {
-                font-size: 18px;
+                font-size: 14px;
             }
 
             .date-card .status {
@@ -434,13 +434,13 @@
             }
 
             .availability-dots {
-                top: 3px;
-                gap: 2px;
+                top: 2px;
+                gap: 1px;
             }
 
             .availability-dot {
-                width: 5px;
-                height: 5px;
+                width: 4px;
+                height: 4px;
             }
         }
     </style>
@@ -638,6 +638,11 @@
             const startDate = new Date(eventData.dateBegin + 'T00:00:00');
             const endDate = new Date(eventData.dateEnd + 'T00:00:00');
             
+            // Check if both Saturday and Sunday are excluded
+            const bothWeekendsExcluded = eventData.excludedWeekdays && 
+                eventData.excludedWeekdays.includes(0) && 
+                eventData.excludedWeekdays.includes(6);
+            
             const current = new Date(startDate);
             while (current <= endDate) {
                 const dayOfWeek = current.getDay();
@@ -647,9 +652,17 @@
                 const isWeekdayExcluded = eventData.excludedWeekdays && eventData.excludedWeekdays.includes(dayOfWeek);
                 const isDateExcluded = eventData.excludedDates && eventData.excludedDates.includes(dateStr);
                 
-                if (!isWeekdayExcluded && !isDateExcluded) {
-                    dates.push(new Date(current));
+                // Skip weekends entirely if both are excluded
+                if (bothWeekendsExcluded && (dayOfWeek === 0 || dayOfWeek === 6)) {
+                    current.setDate(current.getDate() + 1);
+                    continue;
                 }
+                
+                // Add all other dates, marking which are disabled
+                dates.push({
+                    date: new Date(current),
+                    disabled: isWeekdayExcluded || isDateExcluded
+                });
                 
                 current.setDate(current.getDate() + 1);
             }
@@ -692,19 +705,57 @@
             const todayDate = new Date();
             todayDate.setHours(0, 0, 0, 0);
 
-            // Group dates by month
-            const datesByMonth = {};
-            dates.forEach(date => {
-                const monthKey = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
-                if (!datesByMonth[monthKey]) {
-                    datesByMonth[monthKey] = [];
+            // Group dates by week (starting Monday)
+            const weeks = [];
+            let currentWeek = [];
+            
+            dates.forEach((dateObj, index) => {
+                const date = dateObj.date;
+                const dayOfWeek = date.getDay();
+                
+                // Start new week on Monday (day 1), but handle Sunday (day 0) as end of week
+                if (index === 0) {
+                    // Pad beginning of first week to start on Monday
+                    const paddingDays = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+                    for (let i = 0; i < paddingDays; i++) {
+                        currentWeek.push(null); // null = empty cell
+                    }
                 }
-                datesByMonth[monthKey].push(date);
+                
+                currentWeek.push(dateObj);
+                
+                // End week on Sunday (day 0) or when we hit 7 days
+                if (dayOfWeek === 0 || currentWeek.length === 7) {
+                    weeks.push(currentWeek);
+                    currentWeek = [];
+                }
+            });
+            
+            // Add remaining dates if any
+            if (currentWeek.length > 0) {
+                // Pad end of last week
+                while (currentWeek.length < 7) {
+                    currentWeek.push(null);
+                }
+                weeks.push(currentWeek);
+            }
+
+            // Group weeks by month for headers
+            const monthGroups = {};
+            weeks.forEach(week => {
+                const firstValidDate = week.find(d => d !== null);
+                if (firstValidDate) {
+                    const monthKey = firstValidDate.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                    if (!monthGroups[monthKey]) {
+                        monthGroups[monthKey] = [];
+                    }
+                    monthGroups[monthKey].push(week);
+                }
             });
 
             // Render each month group
-            Object.keys(datesByMonth).forEach(monthKey => {
-                const monthDates = datesByMonth[monthKey];
+            Object.keys(monthGroups).forEach(monthKey => {
+                const monthWeeks = monthGroups[monthKey];
                 
                 const monthGroup = document.createElement('div');
                 monthGroup.className = 'month-group';
@@ -717,59 +768,72 @@
                 const grid = document.createElement('div');
                 grid.className = 'dates-grid';
                 
-                monthDates.forEach(date => {
-                    const dateKey = date.toISOString().split('T')[0];
-                    const availability = userAvailability[dateKey];
-                    const isPast = date < todayDate;
-
-                    // Count responses
-                    let availableCount = 0;
-                    let unavailableCount = 0;
-                    allResponses.forEach(response => {
-                        if (response.availability[dateKey] === true) {
-                            availableCount++;
-                        } else if (response.availability[dateKey] === false) {
-                            unavailableCount++;
+                monthWeeks.forEach(week => {
+                    week.forEach(dateObj => {
+                        if (dateObj === null) {
+                            // Empty cell for padding
+                            const emptyCard = document.createElement('div');
+                            emptyCard.className = 'date-card disabled';
+                            emptyCard.style.opacity = '0';
+                            grid.appendChild(emptyCard);
+                            return;
                         }
+                        
+                        const date = dateObj.date;
+                        const isDisabled = dateObj.disabled;
+                        const dateKey = date.toISOString().split('T')[0];
+                        const availability = userAvailability[dateKey];
+                        const isPast = date < todayDate;
+
+                        // Count responses
+                        let availableCount = 0;
+                        let unavailableCount = 0;
+                        allResponses.forEach(response => {
+                            if (response.availability[dateKey] === true) {
+                                availableCount++;
+                            } else if (response.availability[dateKey] === false) {
+                                unavailableCount++;
+                            }
+                        });
+
+                        const card = document.createElement('div');
+                        let statusClass = 'neutral';
+                        let statusText = '';
+                        
+                        if (isPast || isDisabled) {
+                            statusClass = 'disabled';
+                            statusText = isPast ? 'Past' : 'Excluded';
+                        } else if (availability === true) {
+                            statusClass = 'available';
+                            statusText = 'Available';
+                        } else if (availability === false) {
+                            statusClass = 'unavailable';
+                            statusText = 'Unavailable';
+                        }
+                        
+                        card.className = `date-card ${statusClass}`;
+                        
+                        if (!isPast && !isDisabled) {
+                            card.onclick = () => toggleDate(dateKey);
+                        }
+
+                        const dateNum = date.getDate();
+
+                        let dotsHtml = '';
+                        if ((availableCount > 0 || unavailableCount > 0) && !isPast && !isDisabled) {
+                            const greenDots = Array(Math.min(availableCount, 5)).fill('<div class="availability-dot"></div>').join('');
+                            const redDots = Array(Math.min(unavailableCount, 5)).fill('<div class="availability-dot unavailable"></div>').join('');
+                            dotsHtml = `<div class="availability-dots">${greenDots}${redDots}</div>`;
+                        }
+
+                        card.innerHTML = `
+                            ${dotsHtml}
+                            <div class="date-number">${dateNum}</div>
+                            <div class="status">${statusText || '&nbsp;'}</div>
+                        `;
+
+                        grid.appendChild(card);
                     });
-
-                    const card = document.createElement('div');
-                    let statusClass = 'neutral';
-                    let statusText = '';
-                    
-                    if (isPast) {
-                        statusClass = 'disabled';
-                        statusText = 'Past';
-                    } else if (availability === true) {
-                        statusClass = 'available';
-                        statusText = 'Available';
-                    } else if (availability === false) {
-                        statusClass = 'unavailable';
-                        statusText = 'Unavailable';
-                    }
-                    
-                    card.className = `date-card ${statusClass}`;
-                    
-                    if (!isPast) {
-                        card.onclick = () => toggleDate(dateKey);
-                    }
-
-                    const dateNum = date.getDate();
-
-                    let dotsHtml = '';
-                    if ((availableCount > 0 || unavailableCount > 0) && !isPast) {
-                        const greenDots = Array(Math.min(availableCount, 5)).fill('<div class="availability-dot"></div>').join('');
-                        const redDots = Array(Math.min(unavailableCount, 5)).fill('<div class="availability-dot unavailable"></div>').join('');
-                        dotsHtml = `<div class="availability-dots">${greenDots}${redDots}</div>`;
-                    }
-
-                    card.innerHTML = `
-                        ${dotsHtml}
-                        <div class="date-number">${dateNum}</div>
-                        <div class="status">${statusText || '&nbsp;'}</div>
-                    `;
-
-                    grid.appendChild(card);
                 });
                 
                 monthGroup.appendChild(grid);
@@ -796,10 +860,11 @@
             const currentUserName = localStorage.getItem('golfUserName_' + eventId) || '';
             
             const dateAvailability = {};
-            dates.forEach(date => {
-                const dateKey = date.toISOString().split('T')[0];
+            dates.forEach(dateObj => {
+                const dateKey = dateObj.date.toISOString().split('T')[0];
                 dateAvailability[dateKey] = {
-                    date: date,
+                    date: dateObj.date,
+                    disabled: dateObj.disabled,
                     availableCount: 0,
                     unavailableCount: 0
                 };
@@ -840,7 +905,7 @@
             }
 
             const bestDates = Object.values(dateAvailability)
-                .filter(d => d.availableCount === totalPeople && d.unavailableCount === 0 && totalPeople > 0)
+                .filter(d => !d.disabled && d.availableCount === totalPeople && d.unavailableCount === 0 && totalPeople > 0)
                 .sort((a, b) => a.date - b.date);
 
             if (bestDates.length === 0) {

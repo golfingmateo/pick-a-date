@@ -430,9 +430,9 @@
         }
 
         .calendar-day.weekday-excluded {
-            background: #fbbf24;
-            color: white;
-            border-color: #f59e0b;
+            background: #e5e7eb;
+            color: #9ca3af;
+            border-color: #d1d5db;
         }
 
         .calendar-header {
@@ -536,13 +536,13 @@
                 <div class="form-group">
                     <label>Exclude Days of Week</label>
                     <div class="weekday-selector">
-                        <button type="button" class="weekday-btn excluded" data-day="0">Sun</button>
                         <button type="button" class="weekday-btn" data-day="1">Mon</button>
                         <button type="button" class="weekday-btn" data-day="2">Tue</button>
                         <button type="button" class="weekday-btn" data-day="3">Wed</button>
                         <button type="button" class="weekday-btn" data-day="4">Thu</button>
                         <button type="button" class="weekday-btn" data-day="5">Fri</button>
                         <button type="button" class="weekday-btn excluded" data-day="6">Sat</button>
+                        <button type="button" class="weekday-btn excluded" data-day="0">Sun</button>
                     </div>
                 </div>
 
@@ -609,13 +609,13 @@
             </p>
 
             <div class="calendar-header">
-                <div>Sun</div>
                 <div>Mon</div>
                 <div>Tue</div>
                 <div>Wed</div>
                 <div>Thu</div>
                 <div>Fri</div>
                 <div>Sat</div>
+                <div>Sun</div>
             </div>
             <div class="calendar-grid" id="calendarGrid"></div>
             
@@ -740,9 +740,11 @@
                 current.setDate(current.getDate() + 1);
             }
 
-            // Pad to start on Sunday
+            // Pad to start on Monday (day 1)
             const firstDay = dates[0].getDay();
-            for (let i = 0; i < firstDay; i++) {
+            const paddingDays = firstDay === 0 ? 6 : firstDay - 1; // If Sunday (0), need 6 days padding
+            
+            for (let i = 0; i < paddingDays; i++) {
                 const placeholder = document.createElement('div');
                 placeholder.className = 'calendar-day disabled';
                 calendarGrid.appendChild(placeholder);
