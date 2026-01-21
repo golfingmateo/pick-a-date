@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pick a Date - Event Manager</title>
+    <title id="pageTitle">Pick a Date</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛳</text></svg>">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     
     <style>
         * {
@@ -17,194 +24,265 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .container {
-            max-width: 800px;
-            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            animation: slideIn 0.5s ease-out;
         }
 
-        .header {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            text-align: center;
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         h1 {
             color: #2d3748;
-            font-size: 36px;
-            margin-bottom: 10px;
+            font-size: 32px;
+            margin-bottom: 8px;
+            text-align: center;
         }
 
         .subtitle {
             color: #718096;
+            text-align: center;
+            margin-bottom: 32px;
             font-size: 16px;
+            white-space: pre-wrap;
         }
 
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #718096;
         }
 
-        .card h2 {
-            color: #2d3748;
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            color: #4a5568;
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        input[type="text"],
-        input[type="date"],
-        input[type="number"],
-        textarea,
-        select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            font-family: inherit;
-        }
-
-        input:focus,
-        textarea:focus,
-        select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .color-picker {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        .color-option {
-            width: 100%;
-            height: 50px;
-            border-radius: 8px;
-            cursor: pointer;
-            border: 3px solid transparent;
-            transition: all 0.2s ease;
-        }
-
-        .color-option:hover {
-            transform: scale(1.05);
-        }
-
-        .color-option.selected {
-            border-color: #2d3748;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .date-range {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .weekday-selector {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            margin-top: 8px;
-        }
-
-        .weekday-btn {
-            padding: 10px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-
-        .weekday-btn:hover {
-            background: #f7fafc;
-        }
-
-        .weekday-btn.excluded {
-            background: #ef4444;
-            color: white;
-            border-color: #dc2626;
-        }
-
-        .exclude-dates {
-            display: flex;
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        .exclude-dates input {
-            flex: 1;
-        }
-
-        .exclude-dates button {
-            padding: 12px 20px;
-            background: #718096;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .excluded-date-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .excluded-date-tag {
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #ef4444;
             background: #fee2e2;
-            color: #991b1b;
-            padding: 6px 12px;
-            border-radius: 6px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .summary-section {
+            background: #f0fdf4;
+            border: 2px solid #86efac;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            min-height: 100px;
+        }
+
+        .summary-title {
+            color: #166534;
+            font-weight: 700;
             font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .excluded-date-tag button {
-            background: none;
-            border: none;
-            color: #991b1b;
-            cursor: pointer;
-            font-size: 16px;
-            padding: 0;
-            line-height: 1;
+        .summary-title::before {
+            content: "⛳";
+            font-size: 18px;
         }
 
-        .btn {
+        .best-dates {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .best-date-tag {
+            background: #22c55e;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .best-date-tag .count {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        .no-dates {
+            color: #65a30d;
+            font-style: italic;
+        }
+
+        .closed-message {
+            background: #fef3c7;
+            border: 2px solid #fbbf24;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: #78350f;
+            font-weight: 600;
+        }
+
+        .admin-section {
+            background: #fff7ed;
+            border: 2px solid #fbbf24;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .dates-section {
+            margin-bottom: 32px;
+        }
+
+        .month-group {
+            margin-bottom: 32px;
+        }
+
+        .month-header {
+            color: #2d3748;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .dates-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+        }
+
+        .date-card {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            color: #4a5568;
+        }
+
+        .date-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .availability-dots {
+            position: absolute;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 3px;
+            height: 8px;
+        }
+
+        .availability-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .availability-dot.unavailable {
+            background: #ef4444;
+        }
+
+        .date-card.neutral {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .date-card.neutral:hover {
+            background: #cbd5e0;
+        }
+
+        .date-card.available {
+            background: #10b981;
+            border-color: #059669;
+            color: white;
+        }
+
+        .date-card.available .availability-dot {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .date-card.available:hover {
+            background: #059669;
+        }
+
+        .date-card.unavailable {
+            background: #ef4444;
+            border-color: #dc2626;
+            color: white;
+        }
+
+        .date-card.unavailable .availability-dot {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .date-card.unavailable:hover {
+            background: #dc2626;
+        }
+
+        .date-card.disabled {
+            background: #f1f5f9;
+            border-color: #e2e8f0;
+            color: #cbd5e0;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .date-card.disabled:hover {
+            transform: none;
+            box-shadow: none;
+            background: #f1f5f9;
+        }
+
+        .date-card .date-number {
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .date-card .status {
+            font-size: 8px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button {
             width: 100%;
             padding: 16px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -219,98 +297,16 @@
             letter-spacing: 1px;
         }
 
-        .btn:hover {
+        button:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
         }
 
-        .btn:active {
+        button:active {
             transform: translateY(0);
         }
 
-        .event-list {
-            list-style: none;
-        }
-
-        .event-item {
-            background: #f7fafc;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-left: 4px solid;
-            transition: all 0.2s ease;
-        }
-
-        .event-item:hover {
-            transform: translateX(5px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .event-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 10px;
-        }
-
-        .event-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 5px;
-        }
-
-        .event-meta {
-            font-size: 14px;
-            color: #718096;
-        }
-
-        .event-links {
-            display: flex;
-            gap: 10px;
-            margin-top: 12px;
-        }
-
-        .link-btn {
-            flex: 1;
-            padding: 10px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            background: white;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .link-btn:hover {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .link-btn.admin {
-            background: #fef3c7;
-            border-color: #fbbf24;
-        }
-
-        .link-btn.admin:hover {
-            background: #fbbf24;
-            color: #78350f;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #718096;
-        }
-
-        .empty-state-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-        }
-
-        .modal {
+        .modal-overlay {
             display: none;
             position: fixed;
             top: 0;
@@ -321,311 +317,203 @@
             z-index: 1000;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            animation: fadeIn 0.2s ease-out;
         }
 
-        .modal.active {
+        .modal-overlay.active {
             display: flex;
         }
 
-        .modal-content {
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
             background: white;
             border-radius: 16px;
-            padding: 30px;
-            max-width: 500px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease-out;
         }
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .modal-header h2 {
-            margin: 0;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #718096;
-            padding: 0;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .link-display {
-            background: #f7fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 10px;
-            word-break: break-all;
-            font-size: 14px;
+        .modal h2 {
             color: #2d3748;
-        }
-
-        .copy-btn {
-            width: 100%;
-            padding: 10px;
-            background: #10b981;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-
-        .copy-btn:hover {
-            background: #059669;
-        }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            margin-top: 15px;
-        }
-
-        .calendar-day {
-            aspect-ratio: 1;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            background: white;
-        }
-
-        .calendar-day:hover:not(.disabled) {
-            background: #f7fafc;
-            transform: scale(1.05);
-        }
-
-        .calendar-day.disabled {
-            background: #f7fafc;
-            color: #cbd5e0;
-            cursor: not-allowed;
-            border-color: #f7fafc;
-        }
-
-        .calendar-day.excluded {
-            background: #ef4444;
-            color: white;
-            border-color: #dc2626;
-        }
-
-        .calendar-day.weekday-excluded {
-            background: #e5e7eb;
-            color: #9ca3af;
-            border-color: #d1d5db;
-        }
-
-        .calendar-header {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
+            font-size: 24px;
             margin-bottom: 8px;
-            font-size: 12px;
-            font-weight: 600;
+        }
+
+        .modal p {
             color: #718096;
-            text-align: center;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .modal label {
+            display: block;
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .modal input[type="text"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f7fafc;
+            margin-bottom: 24px;
+        }
+
+        .modal input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            margin-top: 0;
+        }
+
+        .modal-cancel {
+            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+            color: #4a5568;
+        }
+
+        .modal-cancel:hover {
+            box-shadow: 0 8px 16px rgba(203, 213, 224, 0.4);
         }
 
         @media (max-width: 640px) {
-            .header {
-                padding: 30px 20px;
+            .container {
+                padding: 24px;
             }
 
             h1 {
-                font-size: 28px;
+                font-size: 24px;
             }
 
-            .card {
-                padding: 20px;
+            .dates-grid {
+                grid-template-columns: repeat(7, 1fr);
+                gap: 4px;
             }
 
-            .date-range {
-                grid-template-columns: 1fr;
-                gap: 12px;
+            .date-card {
+                padding: 6px 2px;
             }
 
-            .weekday-selector {
-                grid-template-columns: repeat(4, 1fr);
-            }
-
-            input[type="date"] {
+            .date-card .date-number {
                 font-size: 14px;
-                padding: 10px 12px;
+            }
+
+            .date-card .status {
+                display: none;
+            }
+
+            .availability-dots {
+                top: 2px;
+                gap: 1px;
+            }
+
+            .availability-dot {
+                width: 4px;
+                height: 4px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>📅 Pick a Date</h1>
-            <p class="subtitle">Create and manage your scheduling events</p>
+        <div id="loadingState" class="loading">
+            <div style="font-size: 48px; margin-bottom: 20px;">⏳</div>
+            <p>Loading event...</p>
         </div>
 
-        <div class="card">
-            <h2>Create New Event</h2>
-            <form id="eventForm">
-                <div class="form-group">
-                    <label for="eventTitle">Event Title *</label>
-                    <input type="text" id="eventTitle" required placeholder="e.g., Golf Tournament March 2026">
-                </div>
-
-                <div class="form-group">
-                    <label for="eventInfo">Additional Info (Optional)</label>
-                    <textarea id="eventInfo" placeholder="Add details about location, time, what to bring, etc."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Background Color</label>
-                    <div class="color-picker" id="colorPicker">
-                        <div class="color-option selected" data-color="#667eea" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"></div>
-                        <div class="color-option" data-color="#10b981" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%)"></div>
-                        <div class="color-option" data-color="#ef4444" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%)"></div>
-                        <div class="color-option" data-color="#f59e0b" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"></div>
-                        <div class="color-option" data-color="#8b5cf6" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)"></div>
-                        <div class="color-option" data-color="#ec4899" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%)"></div>
-                        <div class="color-option" data-color="#06b6d4" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)"></div>
-                        <div class="color-option" data-color="#84cc16" style="background: linear-gradient(135deg, #84cc16 0%, #65a30d 100%)"></div>
-                    </div>
-                    <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center;">
-                        <input type="color" id="customColor" value="#667eea" style="height: 40px; width: 60px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer;">
-                        <small style="color: #718096;">Or pick any custom color</small>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Date Range *</label>
-                    <div class="date-range">
-                        <div>
-                            <input type="date" id="dateBegin" required>
-                            <small style="color: #718096;">Start Date</small>
-                        </div>
-                        <div>
-                            <input type="date" id="dateEnd" required>
-                            <small style="color: #718096;">End Date</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="maxResponses">Maximum Responses</label>
-                    <input type="number" id="maxResponses" min="1" max="100" value="50" placeholder="Leave blank for unlimited">
-                    <small style="color: #718096;">Event will close after this many people respond</small>
-                </div>
-
-                <div class="form-group">
-                    <label>Exclude Days of Week</label>
-                    <div class="weekday-selector">
-                        <button type="button" class="weekday-btn" data-day="1">Mon</button>
-                        <button type="button" class="weekday-btn" data-day="2">Tue</button>
-                        <button type="button" class="weekday-btn" data-day="3">Wed</button>
-                        <button type="button" class="weekday-btn" data-day="4">Thu</button>
-                        <button type="button" class="weekday-btn" data-day="5">Fri</button>
-                        <button type="button" class="weekday-btn excluded" data-day="6">Sat</button>
-                        <button type="button" class="weekday-btn excluded" data-day="0">Sun</button>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Exclude Specific Dates</label>
-                    <p style="font-size: 14px; color: #718096; margin-bottom: 10px;">Select dates from your event range to exclude</p>
-                    <button type="button" class="link-btn" onclick="showDateExclusionCalendar()" style="width: auto; padding: 10px 20px;">📅 Pick Dates to Exclude</button>
-                    <div class="excluded-date-list" id="excludedDatesList"></div>
-                </div>
-
-                <button type="submit" class="btn">Create Event</button>
-            </form>
+        <div id="errorState" style="display: none;">
+            <div class="error">
+                <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
+                <h2 style="margin-bottom: 10px;">Event Not Found</h2>
+                <p id="errorMessage">This event doesn't exist or has been deleted.</p>
+            </div>
         </div>
 
-        <div class="card">
-            <h2>Your Events</h2>
-            <ul class="event-list" id="eventList">
-                <li class="empty-state">
-                    <div class="empty-state-icon">📭</div>
-                    <p>No events yet. Create your first event above!</p>
-                </li>
-            </ul>
+        <div id="eventContent" style="display: none;">
+            <h1 id="eventTitle">Event Title</h1>
+            <p class="subtitle" id="eventInfo"></p>
+
+            <div id="closedMessage" class="closed-message" style="display: none;">
+                🚫 This event is closed. Maximum responses reached.
+            </div>
+
+            <div id="adminControls" class="admin-section" style="display: none;">
+                <h3 style="color: #f59e0b; margin-bottom: 15px;">🔐 Admin Controls</h3>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button onclick="viewDashboard()" style="flex: 1; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">
+                        📊 View Dashboard
+                    </button>
+                    <button onclick="deleteEvent()" style="flex: 1; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                        🗑️ Delete Event
+                    </button>
+                </div>
+                <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 14px; color: #78350f;">
+                    <strong>Responses:</strong> <span id="responseCount">0</span> 
+                    <span id="maxResponsesText"></span>
+                </div>
+            </div>
+
+            <div id="activeEvent">
+                <div class="summary-section">
+                    <div class="summary-title">Everyone's Available</div>
+                    <div class="best-dates" id="bestDates">
+                        <div class="no-dates">Loading...</div>
+                    </div>
+                </div>
+
+                <div class="dates-section">
+                    <div id="datesContainer"></div>
+                </div>
+
+                <button onclick="saveAvailability()">Save My Availability</button>
+            </div>
         </div>
     </div>
 
-    <!-- Event Links Modal -->
-    <div class="modal" id="linksModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>🎉 Event Created!</h2>
-                <button class="modal-close" onclick="closeLinksModal()">×</button>
+    <!-- Name Input Modal -->
+    <div class="modal-overlay" id="nameModal">
+        <div class="modal">
+            <h2>Enter Your Name</h2>
+            <p id="modalSubtext">Please enter your name to save your availability</p>
+            <label for="modalNameInput">Your Name</label>
+            <input type="text" id="modalNameInput" placeholder="Enter your name..." />
+            <div class="modal-buttons">
+                <button class="modal-cancel" onclick="closeNameModal()">Cancel</button>
+                <button onclick="confirmSaveName()">Save</button>
             </div>
-
-            <p style="margin-bottom: 20px; color: #718096;">Your event has been created! Here are your links:</p>
-
-            <div style="margin-bottom: 20px;">
-                <label style="margin-bottom: 8px; display: block; font-weight: 600; color: #2d3748;">📤 Public Link (Share with participants)</label>
-                <div class="link-display" id="publicLink"></div>
-                <button class="copy-btn" onclick="copyPublicLink()">Copy Public Link</button>
-            </div>
-
-            <div style="margin-bottom: 20px;">
-                <label style="margin-bottom: 8px; display: block; font-weight: 600; color: #2d3748;">🔐 Admin Link (Keep this private!)</label>
-                <div class="link-display" id="adminLink"></div>
-                <button class="copy-btn" onclick="copyAdminLink()">Copy Admin Link</button>
-            </div>
-
-            <p style="font-size: 14px; color: #718096; background: #fef3c7; padding: 12px; border-radius: 8px; border-left: 4px solid #f59e0b;">
-                ⚠️ <strong>Important:</strong> Save your admin link! You'll need it to view the dashboard and manage this event.
-            </p>
         </div>
     </div>
-
-    <!-- Date Exclusion Calendar Modal -->
-    <div class="modal" id="calendarModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Exclude Dates</h2>
-                <button class="modal-close" onclick="closeCalendarModal()">×</button>
-            </div>
-            
-            <p style="font-size: 14px; color: #718096; margin-bottom: 15px;">
-                Tap dates to exclude them from the event. Already excluded weekdays are shown in orange.
-            </p>
-
-            <div class="calendar-header">
-                <div>Mon</div>
-                <div>Tue</div>
-                <div>Wed</div>
-                <div>Thu</div>
-                <div>Fri</div>
-                <div>Sat</div>
-                <div>Sun</div>
-            </div>
-            <div class="calendar-grid" id="calendarGrid"></div>
-            
-            <button class="btn" onclick="closeCalendarModal()" style="margin-top: 20px;">Done</button>
-        </div>
-    </div>
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
     <script>
         // Firebase Configuration
@@ -644,16 +532,79 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        let selectedColor = '#667eea';
-        let excludedWeekdays = [0, 6]; // Sunday and Saturday excluded by default
-        let excludedDates = [];
-        let currentEventId = null;
-        let currentAdminKey = null;
+        // Get event ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('event');
+        const adminKey = urlParams.get('admin');
+        let isAdmin = false;
 
-        // Update page background color
+        if (!eventId) {
+            showError('No event ID provided in URL');
+        }
+
+        let eventData = null;
+        let dates = [];
+        let userAvailability = {};
+        let allResponses = [];
+
+        // Load event data
+        async function loadEvent() {
+            try {
+                const snapshot = await database.ref('events/' + eventId).once('value');
+                eventData = snapshot.val();
+
+                if (!eventData) {
+                    showError('Event not found');
+                    return;
+                }
+
+                // Verify admin key
+                if (adminKey && adminKey === eventData.adminKey) {
+                    isAdmin = true;
+                    document.getElementById('adminControls').style.display = 'block';
+                    
+                    // Update response count display
+                    const maxText = eventData.maxResponses 
+                        ? ` / ${eventData.maxResponses} max`
+                        : ' (unlimited)';
+                    document.getElementById('maxResponsesText').textContent = maxText;
+                }
+
+                // Set page title and background
+                document.getElementById('pageTitle').textContent = eventData.title;
+                document.getElementById('eventTitle').textContent = eventData.title;
+                
+                if (eventData.info) {
+                    document.getElementById('eventInfo').textContent = eventData.info;
+                } else {
+                    document.getElementById('eventInfo').style.display = 'none';
+                }
+
+                // Update background color
+                updateBackgroundColor(eventData.color);
+
+                // Generate dates based on event settings
+                generateDates();
+
+                // Initialize user availability
+                dates.forEach(date => {
+                    userAvailability[date.toISOString().split('T')[0]] = null;
+                });
+
+                // Load responses
+                listenToResponses();
+
+                // Show event content
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('eventContent').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading event:', error);
+                showError('Failed to load event');
+            }
+        }
+
         function updateBackgroundColor(color) {
-            selectedColor = color;
-            // Create gradient variations
             const colors = {
                 '#667eea': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 '#10b981': 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
@@ -665,16 +616,13 @@
                 '#84cc16': 'linear-gradient(135deg, #84cc16 0%, #65a30d 100%)'
             };
             
-            // If it's a preset color, use the gradient, otherwise create a simple gradient
             if (colors[color]) {
                 document.body.style.background = colors[color];
             } else {
-                // Create a gradient from the custom color to a darker version
                 document.body.style.background = `linear-gradient(135deg, ${color} 0%, ${adjustBrightness(color, -20)} 100%)`;
             }
         }
 
-        // Helper to darken/lighten colors
         function adjustBrightness(color, percent) {
             const num = parseInt(color.replace("#",""), 16);
             const amt = Math.round(2.55 * percent);
@@ -686,298 +634,435 @@
                 .toString(16).slice(1);
         }
 
-        // Color picker - preset options
-        document.querySelectorAll('.color-option').forEach(option => {
-            option.addEventListener('click', function() {
-                document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
-                this.classList.add('selected');
-                updateBackgroundColor(this.dataset.color);
-            });
-        });
-
-        // Custom color picker
-        document.getElementById('customColor').addEventListener('input', function() {
-            document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
-            updateBackgroundColor(this.value);
-        });
-
-        // Weekday selector
-        document.querySelectorAll('.weekday-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const day = parseInt(this.dataset.day);
-                this.classList.toggle('excluded');
-                
-                if (this.classList.contains('excluded')) {
-                    if (!excludedWeekdays.includes(day)) {
-                        excludedWeekdays.push(day);
-                    }
-                } else {
-                    excludedWeekdays = excludedWeekdays.filter(d => d !== day);
-                }
-            });
-        });
-
-        function showDateExclusionCalendar() {
-            const beginDate = document.getElementById('dateBegin').value;
-            const endDate = document.getElementById('dateEnd').value;
-
-            if (!beginDate || !endDate) {
-                alert('Please select a date range first!');
-                return;
-            }
-
-            const start = new Date(beginDate + 'T00:00:00');
-            const end = new Date(endDate + 'T00:00:00');
+        function generateDates() {
+            const startDate = new Date(eventData.dateBegin + 'T00:00:00');
+            const endDate = new Date(eventData.dateEnd + 'T00:00:00');
             
-            const calendarGrid = document.getElementById('calendarGrid');
-            calendarGrid.innerHTML = '';
-
-            // Generate all dates in range
-            const dates = [];
-            const current = new Date(start);
-            while (current <= end) {
-                dates.push(new Date(current));
+            // Check if both Saturday and Sunday are excluded
+            const bothWeekendsExcluded = eventData.excludedWeekdays && 
+                eventData.excludedWeekdays.includes(0) && 
+                eventData.excludedWeekdays.includes(6);
+            
+            const current = new Date(startDate);
+            while (current <= endDate) {
+                const dayOfWeek = current.getDay();
+                const dateStr = current.toISOString().split('T')[0];
+                
+                // Check if this day/date is excluded
+                const isWeekdayExcluded = eventData.excludedWeekdays && eventData.excludedWeekdays.includes(dayOfWeek);
+                const isDateExcluded = eventData.excludedDates && eventData.excludedDates.includes(dateStr);
+                
+                // Skip weekends entirely if both are excluded
+                if (bothWeekendsExcluded && (dayOfWeek === 0 || dayOfWeek === 6)) {
+                    current.setDate(current.getDate() + 1);
+                    continue;
+                }
+                
+                // Add all other dates, marking which are disabled
+                dates.push({
+                    date: new Date(current),
+                    disabled: isWeekdayExcluded || isDateExcluded
+                });
+                
                 current.setDate(current.getDate() + 1);
             }
+        }
 
-            // Pad to start on Monday (day 1)
-            const firstDay = dates[0].getDay();
-            const paddingDays = firstDay === 0 ? 6 : firstDay - 1; // If Sunday (0), need 6 days padding
+        function listenToResponses() {
+            database.ref('events/' + eventId + '/responses').on('value', (snapshot) => {
+                const data = snapshot.val();
+                allResponses = data ? Object.values(data) : [];
+                
+                // Update admin response count
+                if (isAdmin) {
+                    document.getElementById('responseCount').textContent = allResponses.length;
+                }
+                
+                // Check if event is closed
+                if (eventData.maxResponses && allResponses.length >= eventData.maxResponses) {
+                    document.getElementById('closedMessage').style.display = 'block';
+                    document.getElementById('activeEvent').style.display = 'none';
+                    return;
+                }
+                
+                // Load user's previous response
+                const savedName = localStorage.getItem('golfUserName_' + eventId) || '';
+                if (savedName) {
+                    const previousResponse = allResponses.find(r => r.name === savedName);
+                    if (previousResponse) {
+                        userAvailability = { ...previousResponse.availability };
+                    }
+                }
+                
+                renderDates();
+            });
+        }
+
+        function renderDates() {
+            const container = document.getElementById('datesContainer');
+            container.innerHTML = '';
             
-            for (let i = 0; i < paddingDays; i++) {
-                const placeholder = document.createElement('div');
-                placeholder.className = 'calendar-day disabled';
-                calendarGrid.appendChild(placeholder);
+            const todayDate = new Date();
+            todayDate.setHours(0, 0, 0, 0);
+
+            // Group dates by week (starting Monday)
+            const weeks = [];
+            let currentWeek = [];
+            
+            dates.forEach((dateObj, index) => {
+                const date = dateObj.date;
+                const dayOfWeek = date.getDay();
+                
+                // Start new week on Monday (day 1), but handle Sunday (day 0) as end of week
+                if (index === 0) {
+                    // Pad beginning of first week to start on Monday
+                    const paddingDays = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+                    for (let i = 0; i < paddingDays; i++) {
+                        currentWeek.push(null); // null = empty cell
+                    }
+                }
+                
+                currentWeek.push(dateObj);
+                
+                // End week on Sunday (day 0) or when we hit 7 days
+                if (dayOfWeek === 0 || currentWeek.length === 7) {
+                    weeks.push(currentWeek);
+                    currentWeek = [];
+                }
+            });
+            
+            // Add remaining dates if any
+            if (currentWeek.length > 0) {
+                // Pad end of last week
+                while (currentWeek.length < 7) {
+                    currentWeek.push(null);
+                }
+                weeks.push(currentWeek);
             }
 
-            // Render dates
-            dates.forEach(date => {
-                const dateStr = date.toISOString().split('T')[0];
-                const dayOfWeek = date.getDay();
-                const isWeekdayExcluded = excludedWeekdays.includes(dayOfWeek);
-                const isDateExcluded = excludedDates.includes(dateStr);
-
-                const dayEl = document.createElement('div');
-                dayEl.className = 'calendar-day';
-                dayEl.textContent = date.getDate();
-
-                if (isWeekdayExcluded) {
-                    dayEl.classList.add('weekday-excluded');
-                    dayEl.title = 'Excluded by weekday rule';
-                } else if (isDateExcluded) {
-                    dayEl.classList.add('excluded');
+            // Group weeks by month for headers
+            const monthGroups = {};
+            weeks.forEach(week => {
+                const firstValidDate = week.find(d => d !== null);
+                if (firstValidDate) {
+                    const monthKey = firstValidDate.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                    if (!monthGroups[monthKey]) {
+                        monthGroups[monthKey] = [];
+                    }
+                    monthGroups[monthKey].push(week);
                 }
-
-                if (!isWeekdayExcluded) {
-                    dayEl.onclick = () => toggleDateExclusion(dateStr, dayEl);
-                }
-
-                calendarGrid.appendChild(dayEl);
             });
 
-            document.getElementById('calendarModal').classList.add('active');
+            // Render each month group
+            Object.keys(monthGroups).forEach(monthKey => {
+                const monthWeeks = monthGroups[monthKey];
+                
+                const monthGroup = document.createElement('div');
+                monthGroup.className = 'month-group';
+                
+                const monthHeader = document.createElement('div');
+                monthHeader.className = 'month-header';
+                monthHeader.textContent = monthKey;
+                monthGroup.appendChild(monthHeader);
+                
+                const grid = document.createElement('div');
+                grid.className = 'dates-grid';
+                
+                monthWeeks.forEach(week => {
+                    week.forEach(dateObj => {
+                        if (dateObj === null) {
+                            // Empty cell for padding
+                            const emptyCard = document.createElement('div');
+                            emptyCard.className = 'date-card disabled';
+                            emptyCard.style.opacity = '0';
+                            grid.appendChild(emptyCard);
+                            return;
+                        }
+                        
+                        const date = dateObj.date;
+                        const isDisabled = dateObj.disabled;
+                        const dateKey = date.toISOString().split('T')[0];
+                        const availability = userAvailability[dateKey];
+                        const isPast = date < todayDate;
+
+                        // Count responses
+                        let availableCount = 0;
+                        let unavailableCount = 0;
+                        allResponses.forEach(response => {
+                            if (response.availability[dateKey] === true) {
+                                availableCount++;
+                            } else if (response.availability[dateKey] === false) {
+                                unavailableCount++;
+                            }
+                        });
+
+                        const card = document.createElement('div');
+                        let statusClass = 'neutral';
+                        let statusText = '';
+                        
+                        if (isPast || isDisabled) {
+                            statusClass = 'disabled';
+                            statusText = isPast ? 'Past' : 'Excluded';
+                        } else if (availability === true) {
+                            statusClass = 'available';
+                            statusText = 'Available';
+                        } else if (availability === false) {
+                            statusClass = 'unavailable';
+                            statusText = 'Unavailable';
+                        }
+                        
+                        card.className = `date-card ${statusClass}`;
+                        
+                        if (!isPast && !isDisabled) {
+                            card.onclick = () => toggleDate(dateKey);
+                        }
+
+                        const dateNum = date.getDate();
+
+                        let dotsHtml = '';
+                        if ((availableCount > 0 || unavailableCount > 0) && !isPast && !isDisabled) {
+                            const greenDots = Array(Math.min(availableCount, 5)).fill('<div class="availability-dot"></div>').join('');
+                            const redDots = Array(Math.min(unavailableCount, 5)).fill('<div class="availability-dot unavailable"></div>').join('');
+                            dotsHtml = `<div class="availability-dots">${greenDots}${redDots}</div>`;
+                        }
+
+                        card.innerHTML = `
+                            ${dotsHtml}
+                            <div class="date-number">${dateNum}</div>
+                            <div class="status">${statusText || '&nbsp;'}</div>
+                        `;
+
+                        grid.appendChild(card);
+                    });
+                });
+                
+                monthGroup.appendChild(grid);
+                container.appendChild(monthGroup);
+            });
+
+            updateSummary();
         }
 
-        function toggleDateExclusion(dateStr, element) {
-            if (excludedDates.includes(dateStr)) {
-                excludedDates = excludedDates.filter(d => d !== dateStr);
-                element.classList.remove('excluded');
+        function toggleDate(dateKey) {
+            const current = userAvailability[dateKey];
+            if (current === null) {
+                userAvailability[dateKey] = true;
+            } else if (current === true) {
+                userAvailability[dateKey] = false;
             } else {
-                excludedDates.push(dateStr);
-                element.classList.add('excluded');
+                userAvailability[dateKey] = null;
             }
-            renderExcludedDates();
+            renderDates();
         }
 
-        function closeCalendarModal() {
-            document.getElementById('calendarModal').classList.remove('active');
-        }
+        function updateSummary() {
+            const bestDatesEl = document.getElementById('bestDates');
+            const currentUserName = localStorage.getItem('golfUserName_' + eventId) || '';
+            
+            const dateAvailability = {};
+            dates.forEach(dateObj => {
+                const dateKey = dateObj.date.toISOString().split('T')[0];
+                dateAvailability[dateKey] = {
+                    date: dateObj.date,
+                    disabled: dateObj.disabled,
+                    availableCount: 0,
+                    unavailableCount: 0
+                };
+            });
 
-        function renderExcludedDates() {
-            const container = document.getElementById('excludedDatesList');
-            if (excludedDates.length === 0) {
-                container.innerHTML = '';
+            allResponses.forEach(response => {
+                if (response.name === currentUserName) return;
+                
+                Object.keys(response.availability).forEach(dateKey => {
+                    if (dateAvailability[dateKey]) {
+                        if (response.availability[dateKey] === true) {
+                            dateAvailability[dateKey].availableCount++;
+                        } else if (response.availability[dateKey] === false) {
+                            dateAvailability[dateKey].unavailableCount++;
+                        }
+                    }
+                });
+            });
+            
+            if (currentUserName) {
+                Object.keys(userAvailability).forEach(dateKey => {
+                    if (dateAvailability[dateKey]) {
+                        if (userAvailability[dateKey] === true) {
+                            dateAvailability[dateKey].availableCount++;
+                        } else if (userAvailability[dateKey] === false) {
+                            dateAvailability[dateKey].unavailableCount++;
+                        }
+                    }
+                });
+            }
+
+            const savedUsers = allResponses.filter(r => r.name !== currentUserName);
+            const totalPeople = savedUsers.length + (currentUserName ? 1 : 0);
+
+            if (totalPeople < 2) {
+                bestDatesEl.innerHTML = '<div class="no-dates">Waiting for more responses...</div>';
                 return;
             }
 
-            container.innerHTML = excludedDates.sort().map(date => {
-                const d = new Date(date + 'T00:00:00');
-                const formatted = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                return `
-                    <div class="excluded-date-tag">
-                        ${formatted}
-                        <button onclick="removeExcludedDate('${date}')">×</button>
-                    </div>
-                `;
-            }).join('');
+            const bestDates = Object.values(dateAvailability)
+                .filter(d => !d.disabled && d.availableCount === totalPeople && d.unavailableCount === 0 && totalPeople > 0)
+                .sort((a, b) => a.date - b.date);
+
+            if (bestDates.length === 0) {
+                bestDatesEl.innerHTML = '<div class="no-dates">No dates work for everyone yet</div>';
+            } else {
+                bestDatesEl.innerHTML = bestDates.map(d => {
+                    const dateStr = d.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    return `<div class="best-date-tag">${dateStr} <span class="count">${d.availableCount}/${totalPeople}</span></div>`;
+                }).join('');
+            }
         }
 
-        function removeExcludedDate(date) {
-            excludedDates = excludedDates.filter(d => d !== date);
-            renderExcludedDates();
+        async function saveAvailability() {
+            const savedName = localStorage.getItem('golfUserName_' + eventId) || '';
+            
+            if (savedName) {
+                const response = {
+                    name: savedName,
+                    availability: { ...userAvailability },
+                    timestamp: new Date().toISOString()
+                };
+
+                try {
+                    const sanitizedName = savedName.replace(/[.#$[\]]/g, '_');
+                    await database.ref('events/' + eventId + '/responses/' + sanitizedName).set(response);
+                    
+                    // Update response count
+                    const snapshot = await database.ref('events/' + eventId + '/responses').once('value');
+                    const count = snapshot.val() ? Object.keys(snapshot.val()).length : 0;
+                    await database.ref('events/' + eventId + '/responseCount').set(count);
+                    
+                    showSuccessMessage(`Saved! Your availability has been updated.`);
+                } catch (error) {
+                    console.error('Error saving:', error);
+                    alert('Error saving data. Please try again.');
+                }
+                return;
+            }
+            
+            const modal = document.getElementById('nameModal');
+            const input = document.getElementById('modalNameInput');
+            
+            input.value = '';
+            modal.classList.add('active');
+            input.focus();
+            
+            input.onkeypress = function(e) {
+                if (e.key === 'Enter') {
+                    confirmSaveName();
+                }
+            };
         }
 
-        // Generate random IDs
-        function generateId() {
-            return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        function showSuccessMessage(message) {
+            const banner = document.createElement('div');
+            banner.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+                padding: 16px 32px;
+                border-radius: 12px;
+                box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+                z-index: 2000;
+                font-weight: 600;
+                animation: slideDown 0.3s ease-out;
+            `;
+            banner.textContent = message;
+            document.body.appendChild(banner);
+            
+            setTimeout(() => {
+                banner.remove();
+            }, 2000);
         }
 
-        // Form submission
-        document.getElementById('eventForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+        function closeNameModal() {
+            document.getElementById('nameModal').classList.remove('active');
+        }
 
-            const eventId = generateId();
-            const adminKey = generateId();
+        async function confirmSaveName() {
+            const userName = document.getElementById('modalNameInput').value.trim();
+            
+            if (!userName) {
+                alert('Name is required!');
+                return;
+            }
+            
+            localStorage.setItem('golfUserName_' + eventId, userName);
+            closeNameModal();
 
-            const eventData = {
-                id: eventId,
-                title: document.getElementById('eventTitle').value,
-                info: document.getElementById('eventInfo').value,
-                color: selectedColor,
-                dateBegin: document.getElementById('dateBegin').value,
-                dateEnd: document.getElementById('dateEnd').value,
-                maxResponses: parseInt(document.getElementById('maxResponses').value) || null,
-                excludedWeekdays: excludedWeekdays,
-                excludedDates: excludedDates,
-                adminKey: adminKey,
-                created: new Date().toISOString(),
-                responseCount: 0
+            const response = {
+                name: userName,
+                availability: { ...userAvailability },
+                timestamp: new Date().toISOString()
             };
 
             try {
-                // Save to Firebase
-                await database.ref('events/' + eventId).set(eventData);
-
-                // Save to localStorage for this device
-                const localEvents = JSON.parse(localStorage.getItem('myEvents') || '[]');
-                localEvents.push({
-                    id: eventId,
-                    adminKey: adminKey,
-                    title: eventData.title,
-                    color: eventData.color,
-                    created: eventData.created
-                });
-                localStorage.setItem('myEvents', JSON.stringify(localEvents));
-
-                // Show success modal
-                currentEventId = eventId;
-                currentAdminKey = adminKey;
-                showLinksModal();
-
-                // Reset form
-                this.reset();
-                excludedDates = [];
-                excludedWeekdays = [0, 6]; // Reset to Sunday and Saturday
-                renderExcludedDates();
+                const sanitizedName = userName.replace(/[.#$[\]]/g, '_');
+                await database.ref('events/' + eventId + '/responses/' + sanitizedName).set(response);
                 
-                // Reset weekday buttons
-                document.querySelectorAll('.weekday-btn').forEach(btn => {
-                    btn.classList.remove('excluded');
-                    if (btn.dataset.day === '0' || btn.dataset.day === '6') {
-                        btn.classList.add('excluded');
-                    }
-                });
-
-                // Reset date defaults
-                setDefaultDates();
-
-                // Reload events list
-                loadMyEvents();
-
+                // Update response count
+                const snapshot = await database.ref('events/' + eventId + '/responses').once('value');
+                const count = snapshot.val() ? Object.keys(snapshot.val()).length : 0;
+                await database.ref('events/' + eventId + '/responseCount').set(count);
+                
+                showSuccessMessage(`Thanks ${userName}! Your availability has been saved.`);
             } catch (error) {
-                console.error('Error creating event:', error);
-                alert('Error creating event. Please try again.');
+                console.error('Error saving:', error);
+                alert('Error saving data. Please try again.');
             }
-        });
-
-        function showLinksModal() {
-            const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
-            const publicUrl = `${baseUrl}event.html?event=${currentEventId}`;
-            const adminUrl = `${baseUrl}dashboard.html?event=${currentEventId}&admin=${currentAdminKey}`;
-
-            document.getElementById('publicLink').textContent = publicUrl;
-            document.getElementById('adminLink').textContent = adminUrl;
-            document.getElementById('linksModal').classList.add('active');
         }
 
-        function closeLinksModal() {
-            document.getElementById('linksModal').classList.remove('active');
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
         }
 
-        function copyPublicLink() {
-            const text = document.getElementById('publicLink').textContent;
-            navigator.clipboard.writeText(text);
-            alert('Public link copied!');
+        // Admin functions
+        function viewDashboard() {
+            const baseUrl = window.location.origin + window.location.pathname.replace('event.html', '');
+            const dashboardUrl = `${baseUrl}dashboard.html?event=${eventId}&admin=${adminKey}`;
+            window.open(dashboardUrl, '_blank');
         }
 
-        function copyAdminLink() {
-            const text = document.getElementById('adminLink').textContent;
-            navigator.clipboard.writeText(text);
-            alert('Admin link copied!');
-        }
-
-        function loadMyEvents() {
-            const events = JSON.parse(localStorage.getItem('myEvents') || '[]');
-            const container = document.getElementById('eventList');
-
-            if (events.length === 0) {
-                container.innerHTML = `
-                    <li class="empty-state">
-                        <div class="empty-state-icon">📭</div>
-                        <p>No events yet. Create your first event above!</p>
-                    </li>
-                `;
+        async function deleteEvent() {
+            if (!confirm(`Are you sure you want to delete "${eventData.title}"? This cannot be undone!`)) {
                 return;
             }
 
-            const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
+            const confirmText = prompt('Type DELETE to confirm:');
+            if (confirmText !== 'DELETE') {
+                alert('Event not deleted.');
+                return;
+            }
 
-            container.innerHTML = events.map(event => {
-                const date = new Date(event.created).toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric',
-                    year: 'numeric'
-                });
-
-                const publicUrl = `${baseUrl}event.html?event=${event.id}`;
-                const adminUrl = `${baseUrl}event.html?event=${event.id}&admin=${event.adminKey}`;
-                const dashboardUrl = `${baseUrl}dashboard.html?event=${event.id}&admin=${event.adminKey}`;
-
-                return `
-                    <li class="event-item" style="border-left-color: ${event.color || '#667eea'}">
-                        <div class="event-header">
-                            <div>
-                                <div class="event-title">${event.title}</div>
-                                <div class="event-meta">Created ${date}</div>
-                            </div>
-                        </div>
-                        <div class="event-links">
-                            <button class="link-btn" onclick="window.open('${publicUrl}', '_blank')">📤 Public</button>
-                            <button class="link-btn admin" onclick="window.open('${adminUrl}', '_blank')">🔐 Admin</button>
-                            <button class="link-btn" onclick="window.open('${dashboardUrl}', '_blank')">📊 Dashboard</button>
-                        </div>
-                    </li>
-                `;
-            }).join('');
+            try {
+                await database.ref('events/' + eventId).remove();
+                alert('Event deleted successfully!');
+                
+                // Remove from localStorage
+                const localEvents = JSON.parse(localStorage.getItem('myEvents') || '[]');
+                const updatedEvents = localEvents.filter(e => e.id !== eventId);
+                localStorage.setItem('myEvents', JSON.stringify(updatedEvents));
+                
+                // Redirect to home
+                window.location.href = window.location.origin + window.location.pathname.replace('event.html', 'index.html');
+            } catch (error) {
+                console.error('Error deleting event:', error);
+                alert('Error deleting event. Please try again.');
+            }
         }
 
-        // Load events on page load
-        loadMyEvents();
-
-        // Set default dates function
-        function setDefaultDates() {
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            
-            const endDate = new Date(tomorrow);
-            endDate.setDate(endDate.getDate() + 30);
-
-            document.getElementById('dateBegin').valueAsDate = tomorrow;
-            document.getElementById('dateEnd').valueAsDate = endDate;
-        }
-
-        // Initialize with default dates
-        setDefaultDates();
+        // Load event on page load
+        loadEvent();
     </script>
 </body>
 </html>
