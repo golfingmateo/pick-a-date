@@ -742,33 +742,41 @@
         function generateDates() {
             const startDate = new Date(eventData.dateBegin + 'T00:00:00');
             const endDate = new Date(eventData.dateEnd + 'T00:00:00');
-            
+
+            console.log('generateDates() - excludedWeekdays:', eventData.excludedWeekdays);
+            console.log('generateDates() - typeof each value:', eventData.excludedWeekdays.map(v => typeof v));
+
             // Check if both Saturday and Sunday are excluded
-            const bothWeekendsExcluded = eventData.excludedWeekdays && 
-                eventData.excludedWeekdays.includes(0) && 
+            const bothWeekendsExcluded = eventData.excludedWeekdays &&
+                eventData.excludedWeekdays.includes(0) &&
                 eventData.excludedWeekdays.includes(6);
-            
+
             const current = new Date(startDate);
             while (current <= endDate) {
                 const dayOfWeek = current.getDay();
                 const dateStr = current.toISOString().split('T')[0];
-                
+
                 // Check if this day/date is excluded
                 const isWeekdayExcluded = eventData.excludedWeekdays && eventData.excludedWeekdays.includes(dayOfWeek);
                 const isDateExcluded = eventData.excludedDates && eventData.excludedDates.includes(dateStr);
-                
+
+                // Debug logging for first few dates
+                if (dates.length < 10) {
+                    console.log(`Date: ${current.toDateString()}, dayOfWeek: ${dayOfWeek}, isWeekdayExcluded: ${isWeekdayExcluded}, disabled: ${isWeekdayExcluded || isDateExcluded}`);
+                }
+
                 // Skip weekends entirely if both are excluded
                 if (bothWeekendsExcluded && (dayOfWeek === 0 || dayOfWeek === 6)) {
                     current.setDate(current.getDate() + 1);
                     continue;
                 }
-                
+
                 // Add all other dates, marking which are disabled
                 dates.push({
                     date: new Date(current),
                     disabled: isWeekdayExcluded || isDateExcluded
                 });
-                
+
                 current.setDate(current.getDate() + 1);
             }
         }
