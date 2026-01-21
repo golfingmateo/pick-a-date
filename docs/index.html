@@ -1386,7 +1386,7 @@
             alert('Admin link copied!');
         }
 
-        function loadMyEvents() {
+        async function loadMyEvents() {
             const events = JSON.parse(localStorage.getItem('myEvents') || '[]');
             const container = document.getElementById('eventList');
 
@@ -1400,11 +1400,40 @@
                 return;
             }
 
+            // Validate events against Firebase and filter out deleted ones
+            const validEvents = [];
+            for (const event of events) {
+                try {
+                    const snapshot = await database.ref('events/' + event.id).once('value');
+                    if (snapshot.exists()) {
+                        validEvents.push(event);
+                    }
+                } catch (error) {
+                    console.error('Error checking event:', event.id, error);
+                }
+            }
+
+            // Update localStorage with only valid events
+            if (validEvents.length !== events.length) {
+                localStorage.setItem('myEvents', JSON.stringify(validEvents));
+            }
+
+            // Display valid events
+            if (validEvents.length === 0) {
+                container.innerHTML = `
+                    <li class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No events yet. Create your first event above!</p>
+                    </li>
+                `;
+                return;
+            }
+
             const baseUrl = getBaseUrl();
 
-            container.innerHTML = events.map(event => {
-                const date = new Date(event.created).toLocaleDateString('en-US', { 
-                    month: 'short', 
+            container.innerHTML = validEvents.map(event => {
+                const date = new Date(event.created).toLocaleDateString('en-US', {
+                    month: 'short',
                     day: 'numeric',
                     year: 'numeric'
                 });
