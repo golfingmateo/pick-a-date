@@ -547,13 +547,20 @@
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         }
 
+        function getBaseUrl() {
+            const path = window.location.pathname;
+            const origin = window.location.origin;
+            const dir = path.substring(0, path.lastIndexOf('/') + 1);
+            return origin + dir;
+        }
+
         function viewEvent(eventId) {
-            const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '');
+            const baseUrl = getBaseUrl();
             window.open(`${baseUrl}event.html?event=${eventId}`, '_blank');
         }
 
         function viewDashboard(eventId, adminKey) {
-            const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '');
+            const baseUrl = getBaseUrl();
             window.open(`${baseUrl}dashboard.html?event=${eventId}&admin=${adminKey}`, '_blank');
         }
 

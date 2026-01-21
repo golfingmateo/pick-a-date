@@ -834,6 +834,17 @@
         let currentEventId = null;
         let currentAdminKey = null;
 
+        // Helper function to build URLs properly
+        function getBaseUrl() {
+            const path = window.location.pathname;
+            const origin = window.location.origin;
+            
+            // Get directory path (remove filename if present)
+            const dir = path.substring(0, path.lastIndexOf('/') + 1);
+            
+            return origin + dir;
+        }
+
         // Date range picker state
         let pickerCurrentMonth = new Date();
         let pickerStartDate = null;
@@ -1237,7 +1248,7 @@
         });
 
         function showLinksModal() {
-            const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
+            const baseUrl = getBaseUrl();
             const publicUrl = `${baseUrl}event.html?event=${currentEventId}`;
             const adminUrl = `${baseUrl}dashboard.html?event=${currentEventId}&admin=${currentAdminKey}`;
 
@@ -1276,7 +1287,7 @@
                 return;
             }
 
-            const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
+            const baseUrl = getBaseUrl();
 
             container.innerHTML = events.map(event => {
                 const date = new Date(event.created).toLocaleDateString('en-US', { 
@@ -1286,8 +1297,7 @@
                 });
 
                 const publicUrl = `${baseUrl}event.html?event=${event.id}`;
-                const adminUrl = `${baseUrl}event.html?event=${event.id}&admin=${event.adminKey}`;
-                const dashboardUrl = `${baseUrl}dashboard.html?event=${event.id}&admin=${event.adminKey}`;
+                const adminUrl = `${baseUrl}dashboard.html?event=${event.id}&admin=${event.adminKey}`;
 
                 return `
                     <li class="event-item" style="border-left-color: ${event.color || '#667eea'}">
@@ -1299,8 +1309,7 @@
                         </div>
                         <div class="event-links">
                             <button class="link-btn" onclick="window.open('${publicUrl}', '_blank')">📤 Public</button>
-                            <button class="link-btn admin" onclick="window.open('${adminUrl}', '_blank')">🔐 Admin</button>
-                            <button class="link-btn" onclick="window.open('${dashboardUrl}', '_blank')">📊 Dashboard</button>
+                            <button class="link-btn admin" onclick="window.open('${adminUrl}', '_blank')">🔐 Dashboard</button>
                         </div>
                     </li>
                 `;
