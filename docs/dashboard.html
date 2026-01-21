@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Dashboard</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #2d3748;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 16px;
+            white-space: pre-wrap;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: white;
+            font-size: 18px;
+        }
+
+        .error {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            color: #ef4444;
+        }
+
+        .admin-bar {
+            background: #fff7ed;
+            border: 2px solid #fbbf24;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .admin-bar-title {
+            color: #78350f;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .admin-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .btn-view {
+            background: #06b6d4;
+            color: white;
+        }
+
+        .btn-view:hover {
+            background: #0891b2;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+
+        .btn-refresh {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-refresh:hover {
+            background: #059669;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            color: #2d3748;
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .best-dates {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .best-date-card {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .best-date-card .date {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .best-date-card .count {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .calendar-date {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px 10px;
+            text-align: center;
+        }
+
+        .calendar-date.popular {
+            background: #d1fae5;
+            border-color: #10b981;
+        }
+
+        .calendar-date.mixed {
+            background: #fef3c7;
+            border-color: #f59e0b;
+        }
+
+        .calendar-date .date-num {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .calendar-date .date-label {
+            font-size: 11px;
+            color: #718096;
+            margin-bottom: 8px;
+        }
+
+        .calendar-date .availability {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .availability .available {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .availability .unavailable {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .people-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .person-card {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .person-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .person-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .person-stats {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .person-dates {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .date-tag {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .date-tag.available {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .date-tag.unavailable {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+            font-size: 18px;
+        }
+
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        .month-section {
+            margin-bottom: 30px;
+        }
+
+        .month-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        @media (max-width: 768px) {
+            .calendar-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            }
+
+            .admin-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .admin-actions {
+                width: 100%;
+            }
+
+            .btn {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loadingState" class="loading">
+            <div style="font-size: 48px; margin-bottom: 20px;">⏳</div>
+            <p>Loading dashboard...</p>
+        </div>
+
+        <div id="errorState" class="error" style="display: none;">
+            <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
+            <h2 style="margin-bottom: 10px;">Error Loading Dashboard</h2>
+            <p id="errorMessage">Failed to load event data.</p>
+        </div>
+
+        <div id="dashboardContent" style="display: none;">
+            <div class="header">
+                <h1 id="eventTitle">Event Dashboard</h1>
+                <p class="subtitle" id="eventInfo"></p>
+            </div>
+
+            <div class="admin-bar">
+                <div class="admin-bar-title">🔐 Admin Dashboard</div>
+                <div class="admin-actions">
+                    <button class="btn btn-view" onclick="viewEvent()">👁️ View Event</button>
+                    <button class="btn btn-refresh" onclick="location.reload()">↻ Refresh</button>
+                    <button class="btn btn-delete" onclick="deleteEvent()">🗑️ Delete Event</button>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalPeople">-</div>
+                    <div class="stat-label">Total Responses</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="bestDatesCount">-</div>
+                    <div class="stat-label">Perfect Dates</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalDates">-</div>
+                    <div class="stat-label">Dates Available</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🎯 Best Dates (Everyone Available)</h2>
+                <div class="best-dates" id="bestDates">
+                    <div class="no-data">No responses yet</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📅 All Dates Overview</h2>
+                <div id="calendarView"></div>
+            </div>
+
+            <div class="section">
+                <h2>👥 Individual Responses</h2>
+                <div class="people-list" id="peopleList">
+                    <div class="no-data">No responses yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyASUTmWxGbTSah_Pkxa_VIjJvppxc4dojE",
+            authDomain: "pick-a-date-d0fc8.firebaseapp.com",
+            databaseURL: "https://pick-a-date-d0fc8-default-rtdb.firebaseio.com",
+            projectId: "pick-a-date-d0fc8",
+            storageBucket: "pick-a-date-d0fc8.firebasestorage.app",
+            messagingSenderId: "634466045922",
+            appId: "1:634466045922:web:349c47805fc003390bf3bb",
+            measurementId: "G-DQTMRQZFCC"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Get event ID and admin key from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('event');
+        const adminKey = urlParams.get('admin');
+
+        if (!eventId) {
+            showError('No event ID provided');
+        }
+
+        if (!adminKey) {
+            showError('Admin access required');
+        }
+
+        let eventData = null;
+        let dates = [];
+        let allResponses = [];
+
+        async function loadDashboard() {
+            try {
+                const snapshot = await database.ref('events/' + eventId).once('value');
+                eventData = snapshot.val();
+
+                if (!eventData) {
+                    showError('Event not found');
+                    return;
+                }
+
+                // Verify admin key
+                if (adminKey !== eventData.adminKey) {
+                    showError('Invalid admin key');
+                    return;
+                }
+
+                // Set title and info
+                document.getElementById('eventTitle').textContent = eventData.title;
+                if (eventData.info) {
+                    document.getElementById('eventInfo').textContent = eventData.info;
+                } else {
+                    document.getElementById('eventInfo').style.display = 'none';
+                }
+
+                // Update background
+                updateBackgroundColor(eventData.color);
+
+                // Generate dates
+                generateDates();
+
+                // Load responses
+                listenToResponses();
+
+                // Show dashboard
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('dashboardContent').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showError('Failed to load dashboard');
+            }
+        }
+
+        function updateBackgroundColor(color) {
+            const colors = {
+                '#667eea': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                '#10b981': 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                '#ef4444': 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                '#f59e0b': 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                '#8b5cf6': 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                '#ec4899': 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+                '#06b6d4': 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
+                '#84cc16': 'linear-gradient(135deg, #84cc16 0%, #65a30d 100%)'
+            };
+            
+            if (colors[color]) {
+                document.body.style.background = colors[color];
+            } else {
+                document.body.style.background = `linear-gradient(135deg, ${color} 0%, ${adjustBrightness(color, -20)} 100%)`;
+            }
+        }
+
+        function adjustBrightness(color, percent) {
+            const num = parseInt(color.replace("#",""), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = (num >> 16) + amt;
+            const G = (num >> 8 & 0x00FF) + amt;
+            const B = (num & 0x0000FF) + amt;
+            return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 +
+                (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255))
+                .toString(16).slice(1);
+        }
+
+        function generateDates() {
+            const startDate = new Date(eventData.dateBegin + 'T00:00:00');
+            const endDate = new Date(eventData.dateEnd + 'T00:00:00');
+            
+            const current = new Date(startDate);
+            while (current <= endDate) {
+                const dayOfWeek = current.getDay();
+                const dateStr = current.toISOString().split('T')[0];
+                
+                const isWeekdayExcluded = eventData.excludedWeekdays && eventData.excludedWeekdays.includes(dayOfWeek);
+                const isDateExcluded = eventData.excludedDates && eventData.excludedDates.includes(dateStr);
+                
+                if (!isWeekdayExcluded && !isDateExcluded) {
+                    dates.push(new Date(current));
+                }
+                
+                current.setDate(current.getDate() + 1);
+            }
+        }
+
+        function listenToResponses() {
+            database.ref('events/' + eventId + '/responses').on('value', (snapshot) => {
+                const data = snapshot.val();
+                allResponses = data ? Object.values(data) : [];
+                renderDashboard();
+            });
+        }
+
+        function renderDashboard() {
+            if (allResponses.length === 0) {
+                document.getElementById('bestDates').innerHTML = '<div class="no-data">No responses yet</div>';
+                document.getElementById('peopleList').innerHTML = '<div class="no-data">No responses yet</div>';
+                document.getElementById('calendarView').innerHTML = '<div class="no-data">No data to display</div>';
+                document.getElementById('totalPeople').textContent = '0';
+                document.getElementById('bestDatesCount').textContent = '0';
+                document.getElementById('totalDates').textContent = dates.length;
+                return;
+            }
+
+            renderStats();
+            renderBestDates();
+            renderCalendarView();
+            renderPeopleList();
+        }
+
+        function renderStats() {
+            document.getElementById('totalPeople').textContent = allResponses.length;
+            
+            const dateAvailability = {};
+            dates.forEach(date => {
+                const dateKey = date.toISOString().split('T')[0];
+                dateAvailability[dateKey] = { available: 0, unavailable: 0 };
+            });
+
+            allResponses.forEach(response => {
+                Object.keys(response.availability).forEach(dateKey => {
+                    if (dateAvailability[dateKey]) {
+                        if (response.availability[dateKey] === true) {
+                            dateAvailability[dateKey].available++;
+                        } else if (response.availability[dateKey] === false) {
+                            dateAvailability[dateKey].unavailable++;
+                        }
+                    }
+                });
+            });
+
+            const bestDates = Object.values(dateAvailability).filter(
+                d => d.available === allResponses.length && d.unavailable === 0
+            );
+
+            document.getElementById('bestDatesCount').textContent = bestDates.length;
+            document.getElementById('totalDates').textContent = dates.length;
+        }
+
+        function renderBestDates() {
+            const dateAvailability = {};
+            dates.forEach(date => {
+                const dateKey = date.toISOString().split('T')[0];
+                dateAvailability[dateKey] = { date, available: 0, unavailable: 0 };
+            });
+
+            allResponses.forEach(response => {
+                Object.keys(response.availability).forEach(dateKey => {
+                    if (dateAvailability[dateKey]) {
+                        if (response.availability[dateKey] === true) {
+                            dateAvailability[dateKey].available++;
+                        } else if (response.availability[dateKey] === false) {
+                            dateAvailability[dateKey].unavailable++;
+                        }
+                    }
+                });
+            });
+
+            const bestDates = Object.values(dateAvailability)
+                .filter(d => d.available === allResponses.length && d.unavailable === 0)
+                .sort((a, b) => a.date - b.date);
+
+            const container = document.getElementById('bestDates');
+            
+            if (bestDates.length === 0) {
+                container.innerHTML = '<div class="no-data">No dates where everyone is available</div>';
+                return;
+            }
+
+            container.innerHTML = bestDates.map(d => {
+                const dateStr = d.date.toLocaleDateString('en-US', { 
+                    weekday: 'short', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                return `
+                    <div class="best-date-card">
+                        <div class="date">${dateStr}</div>
+                        <div class="count">${d.available}/${allResponses.length} available</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderCalendarView() {
+            const dateAvailability = {};
+            dates.forEach(date => {
+                const dateKey = date.toISOString().split('T')[0];
+                dateAvailability[dateKey] = { date, available: 0, unavailable: 0 };
+            });
+
+            allResponses.forEach(response => {
+                Object.keys(response.availability).forEach(dateKey => {
+                    if (dateAvailability[dateKey]) {
+                        if (response.availability[dateKey] === true) {
+                            dateAvailability[dateKey].available++;
+                        } else if (response.availability[dateKey] === false) {
+                            dateAvailability[dateKey].unavailable++;
+                        }
+                    }
+                });
+            });
+
+            const datesByMonth = {};
+            Object.values(dateAvailability).forEach(d => {
+                const monthKey = d.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                if (!datesByMonth[monthKey]) {
+                    datesByMonth[monthKey] = [];
+                }
+                datesByMonth[monthKey].push(d);
+            });
+
+            const container = document.getElementById('calendarView');
+            container.innerHTML = Object.keys(datesByMonth).map(monthKey => {
+                const monthDates = datesByMonth[monthKey];
+                
+                const datesHtml = monthDates.map(d => {
+                    let className = 'calendar-date';
+                    if (d.available === allResponses.length && d.unavailable === 0) {
+                        className += ' popular';
+                    } else if (d.available > 0 && d.unavailable > 0) {
+                        className += ' mixed';
+                    }
+
+                    const dateLabel = d.date.toLocaleDateString('en-US', { weekday: 'short' });
+                    
+                    return `
+                        <div class="${className}">
+                            <div class="date-num">${d.date.getDate()}</div>
+                            <div class="date-label">${dateLabel}</div>
+                            <div class="availability">
+                                ${d.available > 0 ? `<span class="available">✓ ${d.available}</span>` : ''}
+                                ${d.unavailable > 0 ? `<span class="unavailable">✗ ${d.unavailable}</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="month-section">
+                        <div class="month-header">${monthKey}</div>
+                        <div class="calendar-grid">${datesHtml}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderPeopleList() {
+            const container = document.getElementById('peopleList');
+            
+            container.innerHTML = allResponses.map(response => {
+                const availableDates = [];
+                const unavailableDates = [];
+
+                Object.keys(response.availability).forEach(dateKey => {
+                    const date = dates.find(d => d.toISOString().split('T')[0] === dateKey);
+                    if (date) {
+                        const dateStr = date.toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric' 
+                        });
+                        
+                        if (response.availability[dateKey] === true) {
+                            availableDates.push(dateStr);
+                        } else if (response.availability[dateKey] === false) {
+                            unavailableDates.push(dateStr);
+                        }
+                    }
+                });
+
+                return `
+                    <div class="person-card">
+                        <div class="person-header">
+                            <div class="person-name">${response.name}</div>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div class="person-stats">
+                                    ${availableDates.length} available · ${unavailableDates.length} unavailable
+                                </div>
+                                <button class="delete-btn" onclick="deleteUser('${response.name}')">Delete</button>
+                            </div>
+                        </div>
+                        <div class="person-dates">
+                            ${availableDates.map(d => `<span class="date-tag available">✓ ${d}</span>`).join('')}
+                            ${unavailableDates.map(d => `<span class="date-tag unavailable">✗ ${d}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function deleteUser(userName) {
+            if (!confirm(`Delete ${userName}'s response?`)) {
+                return;
+            }
+
+            try {
+                const sanitizedName = userName.replace(/[.#$[\]]/g, '_');
+                await database.ref('events/' + eventId + '/responses/' + sanitizedName).remove();
+                
+                // Update response count
+                const snapshot = await database.ref('events/' + eventId + '/responses').once('value');
+                const count = snapshot.val() ? Object.keys(snapshot.val()).length : 0;
+                await database.ref('events/' + eventId + '/responseCount').set(count);
+                
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                alert('Error deleting user');
+            }
+        }
+
+        function viewEvent() {
+            const baseUrl = window.location.origin + window.location.pathname.replace('dashboard.html', '');
+            const eventUrl = `${baseUrl}event.html?event=${eventId}&admin=${adminKey}`;
+            window.open(eventUrl, '_blank');
+        }
+
+        async function deleteEvent() {
+            if (!confirm(`Delete "${eventData.title}"? This cannot be undone!`)) {
+                return;
+            }
+
+            const confirmText = prompt('Type DELETE to confirm:');
+            if (confirmText !== 'DELETE') {
+                return;
+            }
+
+            try {
+                await database.ref('events/' + eventId).remove();
+                alert('Event deleted!');
+                
+                const localEvents = JSON.parse(localStorage.getItem('myEvents') || '[]');
+                const updatedEvents = localEvents.filter(e => e.id !== eventId);
+                localStorage.setItem('myEvents', JSON.stringify(updatedEvents));
+                
+                window.location.href = window.location.origin + window.location.pathname.replace('dashboard.html', 'index.html');
+            } catch (error) {
+                console.error('Error deleting event:', error);
+                alert('Error deleting event');
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>
