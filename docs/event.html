@@ -53,15 +53,17 @@
         h1 {
             color: #2d3748;
             font-size: 32px;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             text-align: center;
+            line-height: 1.2;
         }
 
         .subtitle {
             color: #718096;
             text-align: center;
-            margin-bottom: 32px;
+            margin-bottom: 36px;
             font-size: 16px;
+            line-height: 1.5;
             white-space: pre-wrap;
         }
 
@@ -84,18 +86,18 @@
             background: #f0fdf4;
             border: 2px solid #86efac;
             border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 24px;
+            padding: 24px;
+            margin-bottom: 32px;
             min-height: 100px;
         }
 
         .summary-title {
             color: #166534;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 15px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -159,35 +161,40 @@
         }
 
         .month-group {
-            margin-bottom: 32px;
+            margin-bottom: 40px;
         }
 
         .month-header {
             color: #2d3748;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
-            margin-bottom: 16px;
-            padding-bottom: 8px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
             border-bottom: 2px solid #e2e8f0;
         }
 
         .dates-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 12px;
+            gap: 10px;
         }
 
         .date-card {
             background: #f7fafc;
             border: 2px solid #e2e8f0;
             border-radius: 12px;
-            padding: 20px 16px;
+            padding: 16px 12px;
             cursor: pointer;
             transition: all 0.3s ease;
             text-align: center;
             position: relative;
             overflow: hidden;
             color: #4a5568;
+            min-height: 90px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         .date-card:hover {
@@ -269,17 +276,19 @@
         }
 
         .date-card .date-number {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
-            line-height: 1;
-            margin-bottom: 6px;
+            line-height: 1.1;
+            margin-bottom: 8px;
         }
 
         .date-card .status {
-            font-size: 8px;
+            font-size: 10px;
+            font-weight: 600;
             opacity: 0.9;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            line-height: 1.2;
         }
 
         button {
