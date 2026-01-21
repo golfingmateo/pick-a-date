@@ -559,10 +559,16 @@
                 }
 
                 // Normalize arrays (Firebase converts arrays to objects)
-                if (eventData.excludedWeekdays && typeof eventData.excludedWeekdays === 'object' && !Array.isArray(eventData.excludedWeekdays)) {
+                // Initialize as empty arrays if missing
+                if (!eventData.excludedWeekdays) {
+                    eventData.excludedWeekdays = [];
+                } else if (typeof eventData.excludedWeekdays === 'object' && !Array.isArray(eventData.excludedWeekdays)) {
                     eventData.excludedWeekdays = Object.values(eventData.excludedWeekdays);
                 }
-                if (eventData.excludedDates && typeof eventData.excludedDates === 'object' && !Array.isArray(eventData.excludedDates)) {
+
+                if (!eventData.excludedDates) {
+                    eventData.excludedDates = [];
+                } else if (typeof eventData.excludedDates === 'object' && !Array.isArray(eventData.excludedDates)) {
                     eventData.excludedDates = Object.values(eventData.excludedDates);
                 }
 
