@@ -539,7 +539,10 @@
         let isAdmin = false;
 
         if (!eventId) {
+            console.error('No event ID in URL');
             showError('No event ID provided in URL');
+        } else {
+            console.log('Event ID from URL:', eventId);
         }
 
         let eventData = null;
@@ -550,10 +553,17 @@
         // Load event data
         async function loadEvent() {
             try {
+                console.log('Loading event:', eventId);
+                console.log('Firebase ref path:', 'events/' + eventId);
+
                 const snapshot = await database.ref('events/' + eventId).once('value');
                 eventData = snapshot.val();
 
+                console.log('Firebase snapshot received');
+                console.log('Event data:', eventData);
+
                 if (!eventData) {
+                    console.error('Event not found - Firebase returned null');
                     showError('Event not found');
                     return;
                 }
@@ -614,7 +624,8 @@
 
             } catch (error) {
                 console.error('Error loading event:', error);
-                showError('Failed to load event');
+                console.error('Error details:', error.message, error.stack);
+                showError('Failed to load event: ' + error.message);
             }
         }
 
