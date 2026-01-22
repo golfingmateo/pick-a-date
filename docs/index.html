@@ -218,6 +218,8 @@
             max-height: 500px;
             overflow-y: auto;
             padding-right: 8px;
+            padding-left: 80px;
+            padding-right: 80px;
         }
 
         .picker-month-section {
@@ -600,28 +602,10 @@
         <div class="header">
             <h1>📅 Pick a Date</h1>
             <p class="subtitle">Create and manage your scheduling events</p>
-            <button class="create-event-btn" onclick="openCreateEventModal()">✨ Create New Event</button>
         </div>
 
         <div class="card">
-            <h2>Your Events</h2>
-            <ul class="event-list" id="eventList">
-                <li class="empty-state">
-                    <div class="empty-state-icon">📭</div>
-                    <p>No events yet. Create your first event above!</p>
-                </li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- Create Event Modal -->
-    <div class="modal" id="createEventModal">
-        <div class="modal-content large">
-            <div class="modal-header">
-                <h2>Create New Event</h2>
-                <button class="modal-close" onclick="closeCreateEventModal()">×</button>
-            </div>
-
+            <h2>Create New Event</h2>
             <form id="eventForm">
                 <div class="form-group">
                     <label for="eventTitle">Event Title *</label>
@@ -668,6 +652,16 @@
 
                 <button type="submit" class="btn">Create Event</button>
             </form>
+        </div>
+
+        <div class="card">
+            <h2>Your Events</h2>
+            <ul class="event-list" id="eventList">
+                <li class="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <p>No events yet. Create your first event above!</p>
+                </li>
+            </ul>
         </div>
     </div>
 
@@ -1291,28 +1285,22 @@
                 });
                 localStorage.setItem('myEvents', JSON.stringify(localEvents));
 
-                // Close create event modal
-                closeCreateEventModal();
-
-                // Show success modal
-                currentEventId = eventId;
-                currentAdminKey = adminKey;
-                showLinksModal();
-
                 // Reset form
                 this.reset();
                 excludedDates = [];
                 excludedWeekdays = [0, 6]; // Reset to Sunday and Saturday
                 renderExcludedDates();
 
-                // Reset will happen when modal is reopened
-                // No need to manually reset headers here
-
                 // Reset date defaults
                 setDefaultDates();
 
                 // Reload events list
                 loadMyEvents();
+
+                // Redirect to dashboard instead of showing modal
+                const baseUrl = getBaseUrl();
+                const adminUrl = `${baseUrl}dashboard.html?event=${eventId}&admin=${adminKey}`;
+                window.location.href = adminUrl;
 
             } catch (error) {
                 console.error('Error creating event:', error);
@@ -1332,14 +1320,6 @@
 
         function closeLinksModal() {
             document.getElementById('linksModal').classList.remove('active');
-        }
-
-        function openCreateEventModal() {
-            document.getElementById('createEventModal').classList.add('active');
-        }
-
-        function closeCreateEventModal() {
-            document.getElementById('createEventModal').classList.remove('active');
         }
 
         function updateDateSettingsSummary() {
