@@ -706,7 +706,7 @@
             </div>
 
             <p style="font-size: 14px; color: #718096; margin-bottom: 15px;">
-                <strong>Drag on calendar</strong> to set date range • <strong>Click day headers</strong> to exclude weekdays • <strong>Shift+click dates</strong> to exclude specific dates
+                <strong>Drag/swipe on calendar</strong> to set date range • <strong>Tap dates</strong> to expand/shrink range • <strong>Click day headers</strong> to exclude weekdays • <strong>Shift+click dates</strong> to exclude specific dates
             </p>
 
             <div class="picker-calendar-header" id="stickyWeekdayHeaders">
@@ -946,10 +946,17 @@
                         }
                     }
 
-                    // Add drag handlers
+                    // Add drag handlers for mouse
                     dayEl.addEventListener('mousedown', (e) => handleDayMouseDown(e, date));
                     dayEl.addEventListener('mouseenter', (e) => handleDayMouseEnter(e, date));
                     dayEl.addEventListener('mouseup', () => handleDayMouseUp());
+
+                    // Add touch handlers for mobile
+                    dayEl.addEventListener('touchstart', (e) => handleDayTouchStart(e, date, dateStr, dayOfWeek));
+                    dayEl.addEventListener('touchmove', (e) => handleDayTouchMove(e));
+                    dayEl.addEventListener('touchend', () => handleDayTouchEnd());
+
+                    // Click handler for smart tap selection
                     dayEl.addEventListener('click', (e) => handleDayClick(e, date, dateStr, dayOfWeek));
                 }
 
@@ -961,12 +968,12 @@
         }
 
         function handleDayMouseDown(e, date) {
-            e.preventDefault();
             const dateStr = date.toISOString().split('T')[0];
             const dayOfWeek = date.getDay();
 
             // Check if Shift key is held (exclude mode)
             if (e.shiftKey) {
+                e.preventDefault(); // Prevent default for shift+click
                 // Exclude mode: toggle date exclusion
                 isExcludeMode = true;
                 isDragging = true;
@@ -983,17 +990,22 @@
                     }
                 }
             } else {
-                // Normal mode: select date range
+                // Normal mode: prepare for drag (but also allow click to fire)
+                // Don't prevent default so click event can fire if no drag occurs
                 isExcludeMode = false;
-                isDragging = true;
+                isDragging = false; // Don't set to true yet
                 dragStartDate = date;
-                pickerStartDate = date;
-                pickerEndDate = null;
-                renderPickerMonths();
             }
         }
 
         function handleDayMouseEnter(e, date) {
+            // If we have a dragStartDate but isDragging is false, activate dragging
+            if (dragStartDate && !isDragging) {
+                isDragging = true;
+                pickerStartDate = dragStartDate;
+                pickerEndDate = null;
+            }
+
             if (isDragging) {
                 const dateStr = date.toISOString().split('T')[0];
                 const dayOfWeek = date.getDay();
@@ -1076,12 +1088,165 @@
         }
 
         function handleDayClick(e, date, dateStr, dayOfWeek) {
-            // This is now handled in mousedown to avoid conflicts
-            // Keep this function for compatibility but do nothing
+            // Only handle clicks that aren't part of a drag operation
+            if (isDragging) return;
+
+            // Ignore if Shift key is held (that's for exclusion mode)
+            if (e.shiftKey) return;
+
+            // If no range selected, set both start and end to this date
+            if (!pickerStartDate || !pickerEndDate) {
+                pickerStartDate = date;
+                pickerEndDate = date;
+                renderPickerMonths();
+                return;
+            }
+
+            // Smart selection logic
+            const clickedDate = date;
+
+            // Case 1: Clicked date is before current range - expand start backwards
+            if (clickedDate < pickerStartDate) {
+                pickerStartDate = clickedDate;
+                renderPickerMonths();
+            }
+            // Case 2: Clicked date is after current range - expand end forwards
+            else if (clickedDate > pickerEndDate) {
+                pickerEndDate = clickedDate;
+                renderPickerMonths();
+            }
+            // Case 3: Clicked date is within current range
+            else if (clickedDate >= pickerStartDate && clickedDate <= pickerEndDate) {
+                // Determine if we should shrink from start or end based on proximity
+                const distanceFromStart = Math.abs(clickedDate - pickerStartDate);
+                const distanceFromEnd = Math.abs(clickedDate - pickerEndDate);
+
+                if (distanceFromStart < distanceFromEnd) {
+                    // Closer to start - move start forward to clicked date
+                    pickerStartDate = clickedDate;
+                } else if (distanceFromEnd < distanceFromStart) {
+                    // Closer to end - move end backward to clicked date
+                    pickerEndDate = clickedDate;
+                } else {
+                    // Equal distance or same date - set both to clicked date
+                    pickerStartDate = clickedDate;
+                    pickerEndDate = clickedDate;
+                }
+                renderPickerMonths();
+            }
+        }
+
+        // Touch event handlers for mobile drag support
+        let touchStartTime = 0;
+        const LONG_PRESS_DURATION = 500; // ms for long press to activate exclude mode
+
+        function handleDayTouchStart(e, date, dateStr, dayOfWeek) {
+            e.preventDefault(); // Prevent scrolling while dragging
+            touchStartTime = Date.now();
+
+            // Start dragging immediately (not in exclude mode by default)
+            isExcludeMode = false;
+            isDragging = true;
+            dragStartDate = date;
+            pickerStartDate = date;
+            pickerEndDate = null;
+            renderPickerMonths();
+        }
+
+        function handleDayTouchMove(e) {
+            if (!isDragging) return;
+
+            e.preventDefault(); // Prevent scrolling
+
+            const touch = e.touches[0];
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+
+            if (element && element.classList.contains('picker-day') && element.dataset.date) {
+                const dateStr = element.dataset.date;
+                const date = new Date(dateStr + 'T00:00:00');
+
+                if (isExcludeMode) {
+                    // Exclude mode: toggle dates as we drag over them
+                    const dayOfWeek = date.getDay();
+                    if (pickerStartDate && pickerEndDate && date >= pickerStartDate && date <= pickerEndDate) {
+                        if (!excludedWeekdays.includes(dayOfWeek)) {
+                            if (!excludedDates.includes(dateStr)) {
+                                excludedDates.push(dateStr);
+                                renderPickerMonths();
+                                renderExcludedDates();
+                            }
+                        }
+                    }
+                } else {
+                    // Normal mode: update range selection
+                    if (dragStartDate) {
+                        if (date < dragStartDate) {
+                            pickerStartDate = date;
+                            pickerEndDate = dragStartDate;
+                        } else {
+                            pickerStartDate = dragStartDate;
+                            pickerEndDate = date;
+                        }
+                        renderPickerMonths();
+                    }
+                }
+
+                // Handle auto-scroll for touch
+                handleAutoScrollTouch(touch);
+            }
+        }
+
+        function handleDayTouchEnd() {
+            if (isDragging) {
+                isDragging = false;
+                dragStartDate = null;
+                isExcludeMode = false;
+
+                // Clear auto-scroll
+                if (autoScrollInterval) {
+                    clearInterval(autoScrollInterval);
+                    autoScrollInterval = null;
+                }
+
+                // Update hidden inputs
+                if (pickerStartDate && pickerEndDate) {
+                    document.getElementById('dateBegin').value = pickerStartDate.toISOString().split('T')[0];
+                    document.getElementById('dateEnd').value = pickerEndDate.toISOString().split('T')[0];
+                }
+            }
+        }
+
+        function handleAutoScrollTouch(touch) {
+            const container = document.getElementById('pickerMonthsContainer');
+            const rect = container.getBoundingClientRect();
+            const scrollThreshold = 50;
+            const scrollSpeed = 10;
+
+            // Clear any existing scroll interval
+            if (autoScrollInterval) {
+                clearInterval(autoScrollInterval);
+                autoScrollInterval = null;
+            }
+
+            // Check if touch is near top edge
+            if (touch.clientY - rect.top < scrollThreshold && touch.clientY > rect.top) {
+                autoScrollInterval = setInterval(() => {
+                    container.scrollTop -= scrollSpeed;
+                }, 16);
+            }
+            // Check if touch is near bottom edge
+            else if (rect.bottom - touch.clientY < scrollThreshold && touch.clientY < rect.bottom) {
+                autoScrollInterval = setInterval(() => {
+                    container.scrollTop += scrollSpeed;
+                }, 16);
+            }
         }
 
         // Add global mouse up handler
         document.addEventListener('mouseup', handleDayMouseUp);
+
+        // Add global touch end handler
+        document.addEventListener('touchend', handleDayTouchEnd);
 
         function confirmDatePicker() {
             if (!pickerStartDate || !pickerEndDate) {
