@@ -829,15 +829,24 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            // Render 12 months starting from current month
-            const startMonth = new Date();
-            startMonth.setDate(1);
+            // Calculate the start of the week containing today (Monday-based)
+            const currentDayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+            const daysFromMonday = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1; // Convert to Monday = 0
+            const weekStart = new Date(today);
+            weekStart.setDate(today.getDate() - daysFromMonday);
+            weekStart.setHours(0, 0, 0, 0);
+
+            // Start rendering from the first day of the month containing the week start
+            const startMonth = new Date(weekStart.getFullYear(), weekStart.getMonth(), 1);
+            startMonth.setHours(0, 0, 0, 0);
 
             for (let i = 0; i < 12; i++) {
                 const monthDate = new Date(startMonth);
                 monthDate.setMonth(startMonth.getMonth() + i);
 
-                const monthSection = createMonthSection(monthDate, i, today);
+                // Only skip past weeks for the first month
+                const minRenderDate = i === 0 ? weekStart : null;
+                const monthSection = createMonthSection(monthDate, i, today, minRenderDate);
                 container.appendChild(monthSection);
             }
 
@@ -863,7 +872,7 @@
             });
         }
 
-        function createMonthSection(monthDate, index, today) {
+        function createMonthSection(monthDate, index, today, minRenderDate = null) {
             const year = monthDate.getFullYear();
             const month = monthDate.getMonth();
 
@@ -877,25 +886,6 @@
             title.textContent = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
             section.appendChild(title);
 
-            // Weekday headers
-            // const headerContainer = document.createElement('div');
-            // headerContainer.className = 'picker-calendar-header';
-            // headerContainer.id = `pickerWeekdayHeaders${index}`;
-
-            // const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-            // const dayValues = [1, 2, 3, 4, 5, 6, 0];
-
-            // dayNames.forEach((name, idx) => {
-            //     const header = document.createElement('div');
-            //     header.textContent = name;
-            //     header.dataset.day = dayValues[idx];
-            //     if (excludedWeekdays.includes(dayValues[idx])) {
-            //         header.classList.add('excluded-weekday');
-            //     }
-            //     headerContainer.appendChild(header);
-            // });
-            // section.appendChild(headerContainer);
-
             // Days grid
             const grid = document.createElement('div');
             grid.className = 'picker-days-grid';
@@ -904,18 +894,32 @@
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
 
-            // Padding for first week (Monday = 1)
-            const firstDayOfWeek = firstDay.getDay();
-            const padding = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+            // Determine the actual start day for rendering
+            let startDay = 1;
+            let paddingNeeded = 0;
 
-            for (let i = 0; i < padding; i++) {
+            if (minRenderDate && minRenderDate.getMonth() === month && minRenderDate.getFullYear() === year) {
+                // Start from minRenderDate instead of beginning of month
+                startDay = minRenderDate.getDate();
+
+                // Calculate padding for the week containing minRenderDate
+                const minRenderDayOfWeek = minRenderDate.getDay();
+                paddingNeeded = minRenderDayOfWeek === 0 ? 6 : minRenderDayOfWeek - 1;
+            } else {
+                // Normal padding for first week (Monday = 1)
+                const firstDayOfWeek = firstDay.getDay();
+                paddingNeeded = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+            }
+
+            // Add padding cells
+            for (let i = 0; i < paddingNeeded; i++) {
                 const empty = document.createElement('div');
                 empty.className = 'picker-day empty';
                 grid.appendChild(empty);
             }
 
             // Render days
-            for (let day = 1; day <= lastDay.getDate(); day++) {
+            for (let day = startDay; day <= lastDay.getDate(); day++) {
                 const date = new Date(year, month, day);
                 const dateStr = date.toISOString().split('T')[0];
                 const dayOfWeek = date.getDay();
