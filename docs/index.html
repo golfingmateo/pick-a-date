@@ -602,10 +602,14 @@
         <div class="header">
             <h1>📅 Pick a Date</h1>
             <p class="subtitle">Create and manage your scheduling events</p>
+            <button class="create-event-btn" id="showCreateEventBtn" onclick="showCreateEventForm()">✨ Create New Event</button>
         </div>
 
-        <div class="card">
-            <h2>Create New Event</h2>
+        <div class="card" id="createEventCard" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0;">Create New Event</h2>
+                <button type="button" onclick="hideCreateEventForm()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #718096; padding: 0; width: 32px; height: 32px;">×</button>
+            </div>
             <form id="eventForm">
                 <div class="form-group">
                     <label for="eventTitle">Event Title *</label>
@@ -1294,13 +1298,11 @@
                 // Reset date defaults
                 setDefaultDates();
 
+                // Hide the create event form
+                hideCreateEventForm();
+
                 // Reload events list
                 loadMyEvents();
-
-                // Redirect to dashboard instead of showing modal
-                const baseUrl = getBaseUrl();
-                const adminUrl = `${baseUrl}dashboard.html?event=${eventId}&admin=${adminKey}`;
-                window.location.href = adminUrl;
 
             } catch (error) {
                 console.error('Error creating event:', error);
@@ -1320,6 +1322,16 @@
 
         function closeLinksModal() {
             document.getElementById('linksModal').classList.remove('active');
+        }
+
+        function showCreateEventForm() {
+            document.getElementById('createEventCard').style.display = 'block';
+            document.getElementById('showCreateEventBtn').style.display = 'none';
+        }
+
+        function hideCreateEventForm() {
+            document.getElementById('createEventCard').style.display = 'none';
+            document.getElementById('showCreateEventBtn').style.display = 'block';
         }
 
         function updateDateSettingsSummary() {
@@ -1416,6 +1428,9 @@
             }
 
             const baseUrl = getBaseUrl();
+
+            // Sort events by created date, most recent first
+            validEvents.sort((a, b) => new Date(b.created) - new Date(a.created));
 
             container.innerHTML = validEvents.map(event => {
                 const date = new Date(event.created).toLocaleDateString('en-US', {
