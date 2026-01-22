@@ -214,21 +214,82 @@
             border-radius: 8px;
         }
 
+        .picker-months-container {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .picker-month-section {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+
+        .picker-month-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .picker-month-title {
+            font-weight: 600;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+
+        /* Custom scrollbar styling */
+        .picker-months-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .picker-months-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        .picker-months-container::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
+        }
+
+        .picker-months-container::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
         .picker-calendar-header {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
-            margin-bottom: 8px;
-            font-size: 12px;
+            gap: 3px;
+            margin-bottom: 6px;
+            font-size: 10px;
             font-weight: 600;
             color: #718096;
             text-align: center;
         }
 
+        .picker-calendar-header > div {
+            padding: 4px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .picker-calendar-header > div:hover {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .picker-calendar-header > div.excluded-weekday {
+            background: #ef4444;
+            color: white;
+        }
+
         .picker-days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
+            gap: 3px;
         }
 
         .picker-day {
@@ -236,16 +297,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 11px;
             font-weight: 500;
             transition: all 0.2s ease;
-            border: 2px solid transparent;
+            border: 1.5px solid transparent;
             background: #f8fafc;
+            user-select: none;
         }
 
-        .picker-day:hover:not(.empty):not(.disabled) {
+        .picker-day:hover:not(.empty):not(.past-date) {
             background: #e0f2fe;
             border-color: #38bdf8;
         }
@@ -255,7 +317,7 @@
             cursor: default;
         }
 
-        .picker-day.disabled {
+        .picker-day.past-date {
             color: #cbd5e0;
             background: #f1f5f9;
             cursor: not-allowed;
@@ -275,59 +337,25 @@
             font-weight: 600;
         }
 
-        .weekday-selector {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            margin-top: 8px;
+        .picker-day.excluded-date {
+            background: #e5e7eb;
+            color: #4b5563;
+            border-color: #fca5a5;
         }
 
-        .weekday-btn {
-            padding: 10px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            transition: all 0.2s ease;
+        .picker-day.excluded-weekday {
+            background: #e5e7eb;
+            color: #9ca3af;
+            border-color: #d1d5db;
         }
 
-        .weekday-btn:hover {
-            background: #f7fafc;
-        }
-
-        .weekday-btn.excluded {
-            background: #ef4444;
-            color: white;
-            border-color: #dc2626;
-        }
-
-        .exclude-dates {
-            display: flex;
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        .exclude-dates input {
-            flex: 1;
-        }
-
-        .exclude-dates button {
-            padding: 12px 20px;
-            background: #718096;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-        }
 
         .excluded-date-list {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             margin-top: 12px;
+            min-height: 38px;
         }
 
         .excluded-date-tag {
@@ -541,61 +569,6 @@
             background: #059669;
         }
 
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            margin-top: 15px;
-        }
-
-        .calendar-day {
-            aspect-ratio: 1;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            background: white;
-        }
-
-        .calendar-day:hover:not(.disabled) {
-            background: #f7fafc;
-            transform: scale(1.05);
-        }
-
-        .calendar-day.disabled {
-            background: #f7fafc;
-            color: #cbd5e0;
-            cursor: not-allowed;
-            border-color: #f7fafc;
-        }
-
-        .calendar-day.excluded {
-            background: #ef4444;
-            color: white;
-            border-color: #dc2626;
-        }
-
-        .calendar-day.weekday-excluded {
-            background: #e5e7eb;
-            color: #9ca3af;
-            border-color: #d1d5db;
-        }
-
-        .calendar-header {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            margin-bottom: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #718096;
-            text-align: center;
-        }
 
         @media (max-width: 640px) {
             .header {
@@ -613,10 +586,6 @@
             .date-range {
                 grid-template-columns: 1fr;
                 gap: 12px;
-            }
-
-            .weekday-selector {
-                grid-template-columns: repeat(4, 1fr);
             }
 
             input[type="date"] {
@@ -669,9 +638,9 @@
                     <label>Date Settings *</label>
                     <input type="date" id="dateBegin" required style="display: none;">
                     <input type="date" id="dateEnd" required style="display: none;">
-                    <button type="button" class="date-picker-btn" onclick="openDateSettingsModal()">
+                    <button type="button" class="date-picker-btn" onclick="openDatePickerModal()">
                         <div id="dateSettingsSummary" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
-                            <span id="dateRangeDisplay" style="font-weight: 600;">📅 Pick Date Range</span>
+                            <span id="dateRangeDisplay" style="font-weight: 600;">📅 Pick Date Range & Exclusions</span>
                             <span id="exclusionsSummary" style="font-size: 13px; color: #718096; font-weight: normal;"></span>
                         </div>
                     </button>
@@ -730,102 +699,35 @@
         </div>
     </div>
 
-    <!-- Date Exclusion Calendar Modal -->
-    <div class="modal" id="calendarModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Exclude Dates</h2>
-                <button class="modal-close" onclick="closeCalendarModal()">×</button>
-            </div>
-            
-            <p style="font-size: 14px; color: #718096; margin-bottom: 15px;">
-                Tap dates to exclude them from the event. Already excluded weekdays are shown in gray.
-            </p>
-
-            <div class="calendar-header">
-                <div>Mon</div>
-                <div>Tue</div>
-                <div>Wed</div>
-                <div>Thu</div>
-                <div>Fri</div>
-                <div>Sat</div>
-                <div>Sun</div>
-            </div>
-            <div class="calendar-grid" id="calendarGrid"></div>
-            
-            <button class="btn" onclick="closeCalendarModal()" style="margin-top: 20px;">Done</button>
-        </div>
-    </div>
-
-    <!-- Date Settings Modal -->
-    <div class="modal" id="dateSettingsModal">
+    <!-- Unified Date Picker Modal -->
+    <div class="modal" id="datePickerModal">
         <div class="modal-content large">
             <div class="modal-header">
                 <h2>📅 Date Settings</h2>
-                <button class="modal-close" onclick="closeDateSettingsModal()">×</button>
+                <button class="modal-close" onclick="closeDatePickerModal()">×</button>
             </div>
 
-            <div class="form-group">
-                <label>Date Range *</label>
-                <button type="button" class="date-picker-btn" onclick="showDateRangePicker()">
-                    <span id="dateRangeDisplayInner">📅 Pick Date Range</span>
-                </button>
-            </div>
-
-            <div class="form-group">
-                <label>Exclude Days of Week</label>
-                <div class="weekday-selector">
-                    <button type="button" class="weekday-btn" data-day="1">Mon</button>
-                    <button type="button" class="weekday-btn" data-day="2">Tue</button>
-                    <button type="button" class="weekday-btn" data-day="3">Wed</button>
-                    <button type="button" class="weekday-btn" data-day="4">Thu</button>
-                    <button type="button" class="weekday-btn" data-day="5">Fri</button>
-                    <button type="button" class="weekday-btn excluded" data-day="6">Sat</button>
-                    <button type="button" class="weekday-btn excluded" data-day="0">Sun</button>
-                </div>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0;">
-                <label>Exclude Specific Dates</label>
-                <p style="font-size: 14px; color: #718096; margin-bottom: 10px;">Select dates from your event range to exclude</p>
-                <button type="button" class="link-btn" onclick="showDateExclusionCalendar()" style="width: auto; padding: 10px 20px;">📅 Pick Dates to Exclude</button>
-                <div class="excluded-date-list" id="excludedDatesList"></div>
-            </div>
-
-            <button class="btn" onclick="confirmDateSettings()" style="margin-top: 20px;">Save Date Settings</button>
-        </div>
-    </div>
-
-    <!-- Date Range Picker Modal -->
-    <div class="modal" id="dateRangeModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Pick Date Range</h2>
-                <button class="modal-close" onclick="closeDateRangePicker()">×</button>
-            </div>
-            
             <p style="font-size: 14px; color: #718096; margin-bottom: 15px;">
-                Click to select start and end dates. Dates in between will be highlighted.
+                <strong>Drag on calendar</strong> to set date range • <strong>Click day headers</strong> to exclude weekdays • <strong>Shift+click dates</strong> to exclude specific dates
             </p>
 
-            <div class="picker-header">
-                <button type="button" onclick="prevMonth()" class="month-nav-btn">‹</button>
-                <span id="pickerMonth" style="font-weight: 600; font-size: 18px;"></span>
-                <button type="button" onclick="nextMonth()" class="month-nav-btn">›</button>
+            <div class="picker-calendar-header" id="stickyWeekdayHeaders">
+                <div data-day="1">Mon</div>
+                <div data-day="2">Tue</div>
+                <div data-day="3">Wed</div>
+                <div data-day="4">Thu</div>
+                <div data-day="5">Fri</div>
+                <div data-day="6" class="excluded-weekday">Sat</div>
+                <div data-day="0" class="excluded-weekday">Sun</div>
             </div>
 
-            <div class="picker-calendar-header">
-                <div>Mon</div>
-                <div>Tue</div>
-                <div>Wed</div>
-                <div>Thu</div>
-                <div>Fri</div>
-                <div>Sat</div>
-                <div>Sun</div>
+            <div class="picker-months-container" id="pickerMonthsContainer">
+                <!-- Months will be rendered here dynamically -->
             </div>
-            <div id="pickerDays" class="picker-days-grid"></div>
-            
-            <button class="btn" onclick="confirmDateRange()" style="margin-top: 20px;">Confirm Range</button>
+
+            <div class="excluded-date-list" id="excludedDatesList" style="margin-top: 15px;"></div>
+
+            <button class="btn" onclick="confirmDatePicker()" style="margin-top: 20px;">Save Date Settings</button>
         </div>
     </div>
 
@@ -905,68 +807,111 @@
         }
 
         // Date range picker state
-        let pickerCurrentMonth = new Date();
         let pickerStartDate = null;
         let pickerEndDate = null;
-        let pickerSelectingEnd = false;
+        let isDragging = false;
+        let dragStartDate = null;
+        let autoScrollInterval = null;
+        let isExcludeMode = false; // Track if we're in exclude mode (Shift key)
 
-        function showDateRangePicker() {
-            document.getElementById('dateRangeModal').classList.add('active');
-            renderPickerMonth();
+        function openDatePickerModal() {
+            document.getElementById('datePickerModal').classList.add('active');
+            renderPickerMonths();
+            renderExcludedDates();
         }
 
-        function closeDateRangePicker() {
-            document.getElementById('dateRangeModal').classList.remove('active');
+        function closeDatePickerModal() {
+            document.getElementById('datePickerModal').classList.remove('active');
         }
 
-        function prevMonth() {
-            pickerCurrentMonth.setMonth(pickerCurrentMonth.getMonth() - 1);
-            renderPickerMonth();
-        }
+        function renderPickerMonths() {
+            const container = document.getElementById('pickerMonthsContainer');
+            container.innerHTML = '';
 
-        function nextMonth() {
-            pickerCurrentMonth.setMonth(pickerCurrentMonth.getMonth() + 1);
-            renderPickerMonth();
-        }
-
-        function renderPickerMonth() {
-            const year = pickerCurrentMonth.getFullYear();
-            const month = pickerCurrentMonth.getMonth();
-            
-            document.getElementById('pickerMonth').textContent = 
-                pickerCurrentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-            
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            
-            const grid = document.getElementById('pickerDays');
-            grid.innerHTML = '';
-            
+
+            // Render 12 months starting from current month
+            const startMonth = new Date();
+            startMonth.setDate(1);
+
+            for (let i = 0; i < 12; i++) {
+                const monthDate = new Date(startMonth);
+                monthDate.setMonth(startMonth.getMonth() + i);
+
+                const monthSection = createMonthSection(monthDate, i, today);
+                container.appendChild(monthSection);
+            }
+
+            // Re-initialize weekday headers after rendering
+            initializeWeekdayHeaders();
+        }
+
+        function createMonthSection(monthDate, index, today) {
+            const year = monthDate.getFullYear();
+            const month = monthDate.getMonth();
+
+            // Create month section container
+            const section = document.createElement('div');
+            section.className = 'picker-month-section';
+
+            // Month title
+            const title = document.createElement('div');
+            title.className = 'picker-month-title';
+            title.textContent = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            section.appendChild(title);
+
+            // Weekday headers
+            // const headerContainer = document.createElement('div');
+            // headerContainer.className = 'picker-calendar-header';
+            // headerContainer.id = `pickerWeekdayHeaders${index}`;
+
+            // const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            // const dayValues = [1, 2, 3, 4, 5, 6, 0];
+
+            // dayNames.forEach((name, idx) => {
+            //     const header = document.createElement('div');
+            //     header.textContent = name;
+            //     header.dataset.day = dayValues[idx];
+            //     if (excludedWeekdays.includes(dayValues[idx])) {
+            //         header.classList.add('excluded-weekday');
+            //     }
+            //     headerContainer.appendChild(header);
+            // });
+            // section.appendChild(headerContainer);
+
+            // Days grid
+            const grid = document.createElement('div');
+            grid.className = 'picker-days-grid';
+            grid.id = `pickerDays${index}`;
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+
             // Padding for first week (Monday = 1)
             const firstDayOfWeek = firstDay.getDay();
             const padding = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
-            
+
             for (let i = 0; i < padding; i++) {
                 const empty = document.createElement('div');
                 empty.className = 'picker-day empty';
                 grid.appendChild(empty);
             }
-            
+
             // Render days
             for (let day = 1; day <= lastDay.getDate(); day++) {
                 const date = new Date(year, month, day);
+                const dateStr = date.toISOString().split('T')[0];
+                const dayOfWeek = date.getDay();
                 const dayEl = document.createElement('div');
                 dayEl.className = 'picker-day';
                 dayEl.textContent = day;
-                
-                // Disable past dates
+                dayEl.dataset.date = dateStr;
+
+                // Check if past date
                 if (date < today) {
-                    dayEl.classList.add('disabled');
+                    dayEl.classList.add('past-date');
                 } else {
-                    dayEl.onclick = () => selectDate(date);
-                    
                     // Check if this date is start, end, or in range
                     if (pickerStartDate && date.getTime() === pickerStartDate.getTime()) {
                         dayEl.classList.add('start');
@@ -975,50 +920,164 @@
                     } else if (pickerStartDate && pickerEndDate && date > pickerStartDate && date < pickerEndDate) {
                         dayEl.classList.add('in-range');
                     }
+
+                    // Check if excluded by weekday
+                    if (pickerStartDate && pickerEndDate && date >= pickerStartDate && date <= pickerEndDate) {
+                        if (excludedWeekdays.includes(dayOfWeek)) {
+                            dayEl.classList.add('excluded-weekday');
+                        } else if (excludedDates.includes(dateStr)) {
+                            dayEl.classList.add('excluded-date');
+                        }
+                    }
+
+                    // Add drag handlers
+                    dayEl.addEventListener('mousedown', (e) => handleDayMouseDown(e, date));
+                    dayEl.addEventListener('mouseenter', (e) => handleDayMouseEnter(e, date));
+                    dayEl.addEventListener('mouseup', () => handleDayMouseUp());
+                    dayEl.addEventListener('click', (e) => handleDayClick(e, date, dateStr, dayOfWeek));
                 }
-                
+
                 grid.appendChild(dayEl);
             }
+
+            section.appendChild(grid);
+            return section;
         }
 
-        function selectDate(date) {
-            if (!pickerStartDate || (pickerStartDate && pickerEndDate)) {
-                // First click or reset
+        function handleDayMouseDown(e, date) {
+            e.preventDefault();
+            const dateStr = date.toISOString().split('T')[0];
+            const dayOfWeek = date.getDay();
+
+            // Check if Shift key is held (exclude mode)
+            if (e.shiftKey) {
+                // Exclude mode: toggle date exclusion
+                isExcludeMode = true;
+                isDragging = true;
+
+                if (pickerStartDate && pickerEndDate && date >= pickerStartDate && date <= pickerEndDate) {
+                    if (!excludedWeekdays.includes(dayOfWeek)) {
+                        if (excludedDates.includes(dateStr)) {
+                            excludedDates = excludedDates.filter(d => d !== dateStr);
+                        } else {
+                            excludedDates.push(dateStr);
+                        }
+                        renderPickerMonths();
+                        renderExcludedDates();
+                    }
+                }
+            } else {
+                // Normal mode: select date range
+                isExcludeMode = false;
+                isDragging = true;
+                dragStartDate = date;
                 pickerStartDate = date;
                 pickerEndDate = null;
-                pickerSelectingEnd = true;
-            } else if (date < pickerStartDate) {
-                // Clicked before start, make this the new start
-                pickerEndDate = pickerStartDate;
-                pickerStartDate = date;
-                pickerSelectingEnd = false;
-            } else {
-                // Clicked after start, make this the end
-                pickerEndDate = date;
-                pickerSelectingEnd = false;
+                renderPickerMonths();
             }
-            
-            renderPickerMonth();
         }
 
-        function confirmDateRange() {
-            if (!pickerStartDate || !pickerEndDate) {
-                alert('Please select both start and end dates');
-                return;
+        function handleDayMouseEnter(e, date) {
+            if (isDragging) {
+                const dateStr = date.toISOString().split('T')[0];
+                const dayOfWeek = date.getDay();
+
+                if (isExcludeMode) {
+                    // Exclude mode: toggle dates as we drag over them
+                    if (pickerStartDate && pickerEndDate && date >= pickerStartDate && date <= pickerEndDate) {
+                        if (!excludedWeekdays.includes(dayOfWeek)) {
+                            // Add to excluded if not already there
+                            if (!excludedDates.includes(dateStr)) {
+                                excludedDates.push(dateStr);
+                                renderPickerMonths();
+                                renderExcludedDates();
+                            }
+                        }
+                    }
+                } else {
+                    // Normal mode: update range selection
+                    if (dragStartDate) {
+                        if (date < dragStartDate) {
+                            pickerStartDate = date;
+                            pickerEndDate = dragStartDate;
+                        } else {
+                            pickerStartDate = dragStartDate;
+                            pickerEndDate = date;
+                        }
+                        renderPickerMonths();
+                    }
+                }
+
+                // Check for auto-scroll
+                handleAutoScroll(e);
+            }
+        }
+
+        function handleAutoScroll(e) {
+            const container = document.getElementById('pickerMonthsContainer');
+            const rect = container.getBoundingClientRect();
+            const scrollThreshold = 50; // pixels from edge to trigger scroll
+            const scrollSpeed = 10; // Doubled from 5 to 10
+
+            // Clear any existing scroll interval
+            if (autoScrollInterval) {
+                clearInterval(autoScrollInterval);
+                autoScrollInterval = null;
             }
 
-            // Set the hidden inputs
-            const startStr = pickerStartDate.toISOString().split('T')[0];
-            const endStr = pickerEndDate.toISOString().split('T')[0];
+            // Check if mouse is near top edge
+            if (e.clientY - rect.top < scrollThreshold && e.clientY > rect.top) {
+                autoScrollInterval = setInterval(() => {
+                    container.scrollTop -= scrollSpeed;
+                }, 16); // ~60fps
+            }
+            // Check if mouse is near bottom edge
+            else if (rect.bottom - e.clientY < scrollThreshold && e.clientY < rect.bottom) {
+                autoScrollInterval = setInterval(() => {
+                    container.scrollTop += scrollSpeed;
+                }, 16);
+            }
+        }
 
-            document.getElementById('dateBegin').value = startStr;
-            document.getElementById('dateEnd').value = endStr;
+        function handleDayMouseUp() {
+            if (isDragging) {
+                isDragging = false;
+                dragStartDate = null;
+                isExcludeMode = false;
+
+                // Clear auto-scroll
+                if (autoScrollInterval) {
+                    clearInterval(autoScrollInterval);
+                    autoScrollInterval = null;
+                }
+
+                // Update hidden inputs (only in normal mode, not exclude mode)
+                if (!isExcludeMode && pickerStartDate && pickerEndDate) {
+                    document.getElementById('dateBegin').value = pickerStartDate.toISOString().split('T')[0];
+                    document.getElementById('dateEnd').value = pickerEndDate.toISOString().split('T')[0];
+                }
+            }
+        }
+
+        function handleDayClick(e, date, dateStr, dayOfWeek) {
+            // This is now handled in mousedown to avoid conflicts
+            // Keep this function for compatibility but do nothing
+        }
+
+        // Add global mouse up handler
+        document.addEventListener('mouseup', handleDayMouseUp);
+
+        function confirmDatePicker() {
+            if (!pickerStartDate || !pickerEndDate) {
+                alert('Please drag on the calendar to select a date range');
+                return;
+            }
 
             // Update displays
             updateDateSettingsSummary();
 
             // Close modal
-            closeDateRangePicker();
+            closeDatePickerModal();
         }
 
         // Update page background color
@@ -1107,97 +1166,44 @@
             closeColorPicker();
         }
 
-        // Weekday selector
-        document.querySelectorAll('.weekday-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
+        // Initialize weekday header click handlers
+        function initializeWeekdayHeaders() {
+            // Find the sticky weekday header
+            const stickyHeader = document.getElementById('stickyWeekdayHeaders');
+            if (!stickyHeader) return;
+
+            const headers = stickyHeader.querySelectorAll('div[data-day]');
+
+            const handleHeaderClick = function() {
                 const day = parseInt(this.dataset.day);
-                this.classList.toggle('excluded');
-                
-                if (this.classList.contains('excluded')) {
-                    if (!excludedWeekdays.includes(day)) {
-                        excludedWeekdays.push(day);
-                    }
-                } else {
+
+                // Toggle the excluded weekday in the array
+                if (excludedWeekdays.includes(day)) {
                     excludedWeekdays = excludedWeekdays.filter(d => d !== day);
-                }
-            });
-        });
-
-        function showDateExclusionCalendar() {
-            const beginDate = document.getElementById('dateBegin').value;
-            const endDate = document.getElementById('dateEnd').value;
-
-            if (!beginDate || !endDate) {
-                alert('Please select a date range first!');
-                return;
-            }
-
-            const start = new Date(beginDate + 'T00:00:00');
-            const end = new Date(endDate + 'T00:00:00');
-            
-            const calendarGrid = document.getElementById('calendarGrid');
-            calendarGrid.innerHTML = '';
-
-            // Generate all dates in range
-            const dates = [];
-            const current = new Date(start);
-            while (current <= end) {
-                dates.push(new Date(current));
-                current.setDate(current.getDate() + 1);
-            }
-
-            // Pad to start on Monday (day 1)
-            const firstDay = dates[0].getDay();
-            const paddingDays = firstDay === 0 ? 6 : firstDay - 1; // If Sunday (0), need 6 days padding
-            
-            for (let i = 0; i < paddingDays; i++) {
-                const placeholder = document.createElement('div');
-                placeholder.className = 'calendar-day disabled';
-                calendarGrid.appendChild(placeholder);
-            }
-
-            // Render dates
-            dates.forEach(date => {
-                const dateStr = date.toISOString().split('T')[0];
-                const dayOfWeek = date.getDay();
-                const isWeekdayExcluded = excludedWeekdays.includes(dayOfWeek);
-                const isDateExcluded = excludedDates.includes(dateStr);
-
-                const dayEl = document.createElement('div');
-                dayEl.className = 'calendar-day';
-                dayEl.textContent = date.getDate();
-
-                if (isWeekdayExcluded) {
-                    dayEl.classList.add('weekday-excluded');
-                    dayEl.title = 'Excluded by weekday rule';
-                } else if (isDateExcluded) {
-                    dayEl.classList.add('excluded');
+                } else {
+                    excludedWeekdays.push(day);
                 }
 
-                if (!isWeekdayExcluded) {
-                    dayEl.onclick = () => toggleDateExclusion(dateStr, dayEl);
-                }
+                // Update the visual state of the header
+                this.classList.toggle('excluded-weekday');
 
-                calendarGrid.appendChild(dayEl);
+                // Re-render the months to update the day styling
+                renderPickerMonths();
+            };
+
+            headers.forEach(header => {
+                // Remove any existing click handlers to avoid duplicates
+                const newHeader = header.cloneNode(true);
+                header.parentNode.replaceChild(newHeader, header);
             });
 
-            document.getElementById('calendarModal').classList.add('active');
+            // Re-query after replacing nodes
+            const updatedHeaders = stickyHeader.querySelectorAll('div[data-day]');
+            updatedHeaders.forEach(header => {
+                header.addEventListener('click', handleHeaderClick);
+            });
         }
 
-        function toggleDateExclusion(dateStr, element) {
-            if (excludedDates.includes(dateStr)) {
-                excludedDates = excludedDates.filter(d => d !== dateStr);
-                element.classList.remove('excluded');
-            } else {
-                excludedDates.push(dateStr);
-                element.classList.add('excluded');
-            }
-            renderExcludedDates();
-        }
-
-        function closeCalendarModal() {
-            document.getElementById('calendarModal').classList.remove('active');
-        }
 
         function renderExcludedDates() {
             const container = document.getElementById('excludedDatesList');
@@ -1221,6 +1227,7 @@
         function removeExcludedDate(date) {
             excludedDates = excludedDates.filter(d => d !== date);
             renderExcludedDates();
+            renderPickerMonth();
         }
 
         // Generate random IDs
@@ -1280,13 +1287,8 @@
                 excludedWeekdays = [0, 6]; // Reset to Sunday and Saturday
                 renderExcludedDates();
 
-                // Reset weekday buttons
-                document.querySelectorAll('.weekday-btn').forEach(btn => {
-                    btn.classList.remove('excluded');
-                    if (btn.dataset.day === '0' || btn.dataset.day === '6') {
-                        btn.classList.add('excluded');
-                    }
-                });
+                // Reset will happen when modal is reopened
+                // No need to manually reset headers here
 
                 // Reset date defaults
                 setDefaultDates();
@@ -1322,19 +1324,6 @@
             document.getElementById('createEventModal').classList.remove('active');
         }
 
-        function openDateSettingsModal() {
-            document.getElementById('dateSettingsModal').classList.add('active');
-        }
-
-        function closeDateSettingsModal() {
-            document.getElementById('dateSettingsModal').classList.remove('active');
-        }
-
-        function confirmDateSettings() {
-            updateDateSettingsSummary();
-            closeDateSettingsModal();
-        }
-
         function updateDateSettingsSummary() {
             const beginDate = document.getElementById('dateBegin').value;
             const endDate = document.getElementById('dateEnd').value;
@@ -1355,7 +1344,6 @@
 
                 const rangeText = `📅 ${startFormatted} → ${endFormatted}`;
                 document.getElementById('dateRangeDisplay').innerHTML = `<span style="font-weight: 600;">${rangeText}</span>`;
-                document.getElementById('dateRangeDisplayInner').textContent = rangeText;
 
                 // Build exclusions summary
                 const exclusions = [];
@@ -1473,7 +1461,6 @@
             // Set picker defaults
             pickerStartDate = tomorrow;
             pickerEndDate = endDate;
-            pickerCurrentMonth = new Date(tomorrow);
 
             // Set hidden inputs
             document.getElementById('dateBegin').value = tomorrow.toISOString().split('T')[0];
