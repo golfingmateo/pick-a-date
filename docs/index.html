@@ -843,8 +843,26 @@
                 container.appendChild(monthSection);
             }
 
+            // Update sticky header to reflect current excluded weekdays
+            updateStickyHeader();
+
             // Re-initialize weekday headers after rendering
             initializeWeekdayHeaders();
+        }
+
+        function updateStickyHeader() {
+            const stickyHeader = document.getElementById('stickyWeekdayHeaders');
+            if (!stickyHeader) return;
+
+            const headers = stickyHeader.querySelectorAll('div[data-day]');
+            headers.forEach(header => {
+                const day = parseInt(header.dataset.day);
+                if (excludedWeekdays.includes(day)) {
+                    header.classList.add('excluded-weekday');
+                } else {
+                    header.classList.remove('excluded-weekday');
+                }
+            });
         }
 
         function createMonthSection(monthDate, index, today) {
