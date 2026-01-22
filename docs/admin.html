@@ -367,9 +367,20 @@
         let allEvents = [];
         let currentFilter = 'all';
 
+        // Check for existing session on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            const isAuthenticated = sessionStorage.getItem('adminAuthenticated');
+            if (isAuthenticated === 'true') {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('adminConsole').style.display = 'block';
+                loadEvents();
+            }
+        });
+
         function login() {
             const password = document.getElementById('adminPassword').value;
             if (password === ADMIN_PASSWORD) {
+                sessionStorage.setItem('adminAuthenticated', 'true');
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('adminConsole').style.display = 'block';
                 loadEvents();
@@ -378,23 +389,25 @@
             }
         }
 
-        async function loadEvents() {
+        function loadEvents() {
             try {
-                const snapshot = await database.ref('events').once('value');
-                const data = snapshot.val();
-                
-                if (!data) {
-                    allEvents = [];
+                // Use .on() instead of .once() to get real-time updates
+                database.ref('events').on('value', (snapshot) => {
+                    const data = snapshot.val();
+
+                    if (!data) {
+                        allEvents = [];
+                        renderEvents();
+                        return;
+                    }
+
+                    allEvents = Object.values(data).sort((a, b) =>
+                        new Date(b.created) - new Date(a.created)
+                    );
+
+                    renderStats();
                     renderEvents();
-                    return;
-                }
-
-                allEvents = Object.values(data).sort((a, b) => 
-                    new Date(b.created) - new Date(a.created)
-                );
-
-                renderStats();
-                renderEvents();
+                });
 
             } catch (error) {
                 console.error('Error loading events:', error);
