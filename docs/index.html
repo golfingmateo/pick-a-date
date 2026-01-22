@@ -1454,6 +1454,10 @@
                 });
                 localStorage.setItem('myEvents', JSON.stringify(localEvents));
 
+                // Set current event info for the links modal
+                currentEventId = eventId;
+                currentAdminKey = adminKey;
+
                 // Reset form
                 this.reset();
                 excludedDates = [];
@@ -1468,6 +1472,9 @@
 
                 // Reload events list
                 loadMyEvents();
+
+                // Show the links modal
+                showLinksModal();
 
             } catch (error) {
                 console.error('Error creating event:', error);
